@@ -62,8 +62,9 @@ while get (stop,'value') == 0
            w = size (D,1);
            i = ceil (rand*(n-w))+(1:w);
            j = ceil (rand*(n-w))+(1:w);
-           H (i,j) = H (i,j) + rand*D;
-           phi (i,j) = phi(i,j) + rand*D;
+           hdrop = rand;
+           phi (i,j) = (hdrop*D + phi(i,j) * H(i,j))./(hdrop*D + H(i,j));
+           H (i,j) = H (i,j) + hdrop*D;
        end
      
        % Reflective boundary conditions
