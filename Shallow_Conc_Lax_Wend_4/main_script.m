@@ -1,4 +1,3 @@
-function shallow_water
 % SHALLOW_WATER
 % MATLAB version of: WAVE -- 2D Shallow Water Model
 % New Mexico Supercomputing Challenge, Glorieta Kickoff 2007
@@ -64,7 +63,7 @@ while get (stop,'value') == 0
            i = ceil (.5*(n-w))+(1:w);
            j = ceil (.5*(n-w))+(1:w);
            S = ones(size(D));
-           hdrop = 1;
+           hdrop = 3;
 %            phi (i,j) = (hdrop*D + phi(i,j) .* H(i,j))./(hdrop*D + H(i,j));
            phi(i,j) = hdrop*S;
            H (i,j) = H (i,j) + hdrop*S;
@@ -114,7 +113,8 @@ while get (stop,'value') == 0
            (phi(i+1,j+1)-phi(i,j+1));
        
        % height
-       Hx (i,j) = (H (i+1,j+1)+H (i,j+1))/2 - dt/(2*dx)*(U (i+1,j+1)-U (i,j+1));
+       Hx (i,j) = (H (i+1,j+1)+H (i,j+1))/2 ...
+           - dt/(2*dx)*(U (i+1,j+1)-U (i,j+1));
    
        % x momentum
        Ux (i,j) = (U (i+1,j+1)+U (i,j+1))/2 -  ...
@@ -152,89 +152,188 @@ while get (stop,'value') == 0
        j = 3:n+2;
    
        %TVD
-       duminus1 = H(i-1,j) - H(i-2,j);
-       duminus2 = U(i-1,j) - U(i-2,j);
-       duplus1 = H(i+1,j) - H(i,j);
-       duplus2 = U(i+1,j) - U(i,j);
-       duhalf1 = H(i,j) - H(i-1,j);
-       duhalf2 = U(i,j) - U(i-1,j);
-       rdenom = max(duhalf1.^2 + duhalf2.^2, eps);
-       rnumplus = duplus1.*duhalf1 + duplus2.*duhalf2;
+       duminus1  = H(i-1,j) - H(i-2,j);
+       duminus2  = U(i-1,j) - U(i-2,j);
+       duplus1   = H(i+1,j) - H(i,j);
+       duplus2   = U(i+1,j) - U(i,j);
+       duhalf1   = H(i,j) - H(i-1,j);
+       duhalf2   = U(i,j) - U(i-1,j);
+       rdenom    = max(duhalf1.^2 + duhalf2.^2, eps);
+       rnumplus  = duplus1.*duhalf1 + duplus2.*duhalf2;
        rnumminus = duminus1.*duhalf1 + duminus2.*duhalf2;
-       rplus = rnumplus./rdenom;
-       rminus = rnumminus./rdenom;
-       q = max(min(1.0, min(rminus, rplus)),0.0);
-       nu = (abs(Ux(i-1,j-1)) + sqrt(g*Hx(i-1,j-1)))*dt/dx;
-       cv = nu.*(1-nu);
-       wminusx = .5*cv.*(1-q);
+       rplus     = rnumplus./rdenom;
+       rminus    = rnumminus./rdenom;
+       q         = max(min(1.0, min(rminus, rplus)),0.0);
+       nu        = (abs(Ux(i-1,j-1)) + sqrt(g*Hx(i-1,j-1)))*dt/dx;
+       cv        = nu.*(1-nu);
+       wminusx   = .5*cv.*(1-q);
        
-       duminus1 = H(i,j) - H(i-1,j);
-       duminus2 = U(i,j) - U(i-1,j);
-       duplus1 = H(i+2,j) - H(i+1,j);
-       duplus2 = U(i+2,j) - U(i+1,j);
-       duhalf1 = H(i+1,j) - H(i,j);
-       duhalf2 = U(i+1,j) - U(i,j);
-       rdenom = max(duhalf1.^2 + duhalf2.^2, eps);
-       rnumplus = duplus1.*duhalf1 + duplus2.*duhalf2;
+       duminus1  = H(i  ,j) - H(i-1,j);
+       duminus2  = U(i  ,j) - U(i-1,j);
+       duplus1   = H(i+2,j) - H(i+1,j);
+       duplus2   = U(i+2,j) - U(i+1,j);
+       duhalf1   = H(i+1,j) - H(i,j  );
+       duhalf2   = U(i+1,j) - U(i,j  );
+       rdenom    = max(duhalf1.^2 + duhalf2.^2, eps);
+       rnumplus  = duplus1.*duhalf1 + duplus2.*duhalf2;
        rnumminus = duminus1.*duhalf1 + duminus2.*duhalf2;
-       rplus = rnumplus./rdenom;
-       rminus = rnumminus./rdenom;
-       q = max(min(1.0, min(rminus, rplus)),0.0);
-       nu = (abs(Ux(i,j-1)) + sqrt(g*Hx(i,j-1)))*dt/dx;
-       cv = nu.*(1-nu);
-       wplusx = .5*cv.*(1-q);       
+       rplus     = rnumplus./rdenom;
+       rminus    = rnumminus./rdenom;
+       q         = max(min(1.0, min(rminus, rplus)),0.0);
+       nu        = (abs(Ux(i,j-1)) + sqrt(g*Hx(i,j-1)))*dt/dx;
+       cv        = nu.*(1-nu);
+       wplusx    = .5*cv.*(1-q);       
        
-       duminus1 = H(i,j-1) - H(i,j-2);
-       duminus2 = V(i,j-1) - V(i,j-2);
-       duplus1 = H(i,j+1) - H(i,j);
-       duplus2 = V(i,j+1) - V(i,j);
-       duhalf1 = H(i,j) - H(i,j-1);
-       duhalf2 = V(i,j) - V(i,j-1);
-       rdenom = max(duhalf1.^2 + duhalf2.^2, eps);
-       rnumplus = duplus1.*duhalf1 + duplus2.*duhalf2;
+       duminus1  = H(i,j-1) - H(i,j-2);
+       duminus2  = V(i,j-1) - V(i,j-2);
+       duplus1   = H(i,j+1) - H(i,j);
+       duplus2   = V(i,j+1) - V(i,j);
+       duhalf1   = H(i,j) - H(i,j-1);
+       duhalf2   = V(i,j) - V(i,j-1);
+       rdenom    = max(duhalf1.^2 + duhalf2.^2, eps);
+       rnumplus  = duplus1.*duhalf1 + duplus2.*duhalf2;
        rnumminus = duminus1.*duhalf1 + duminus2.*duhalf2;
-       rplus = rnumplus./rdenom;
-       rminus = rnumminus./rdenom;
-       q = max(min(1.0, min(rminus, rplus)),0.0);
-       nu = (abs(Vy(i-1,j-1)) + sqrt(g*Hy(i-1,j-1)))*dt/dy;
-       cv = nu.*(1-nu);
-       wminusy = .5*cv.*(1-q);
+       rplus     = rnumplus./rdenom;
+       rminus    = rnumminus./rdenom;
+       q         = max(min(1.0, min(rminus, rplus)),0.0);
+       nu        = (abs(Vy(i-1,j-1)) + sqrt(g*Hy(i-1,j-1)))*dt/dy;
+       cv        = nu.*(1-nu);
+       wminusy   = .5*cv.*(1-q);
        
-       duminus1 = H(i,j)   - H(i,j-1);
-       duminus2 = V(i,j)   - V(i,j-1);
-       duplus1  = H(i,j+2) - H(i,j+1);
-       duplus2  = V(i,j+2) - V(i,j+1);
-       duhalf1  = H(i,j+1) - H(i,j  );
-       duhalf2  = V(i,j+1) - V(i,j  );
-       rdenom = max(duhalf1.^2 + duhalf2.^2, eps);
-       rnumplus = duplus1.*duhalf1 + duplus2.*duhalf2;
+       duminus1  = H(i,j)   - H(i,j-1);
+       duminus2  = V(i,j)   - V(i,j-1);
+       duplus1   = H(i,j+2) - H(i,j+1);
+       duplus2   = V(i,j+2) - V(i,j+1);
+       duhalf1   = H(i,j+1) - H(i,j  );
+       duhalf2   = V(i,j+1) - V(i,j  );
+       rdenom    = max(duhalf1.^2 + duhalf2.^2, eps);
+       rnumplus  = duplus1.*duhalf1 + duplus2.*duhalf2;
        rnumminus = duminus1.*duhalf1 + duminus2.*duhalf2;
-       rplus = rnumplus./rdenom;
-       rminus = rnumminus./rdenom;
-       q = max(min(1.0, min(rminus, rplus)),0.0);
-       nu = (abs(Vy(i-1,j)) + sqrt(g*Hy(i-1,j)))*dt/dy;
-       cv = nu.*(1-nu);
-       wplusy = .5*cv.*(1-q);
+       rplus     = rnumplus./rdenom;
+       rminus    = rnumminus./rdenom;
+       q         = max(min(1.0, min(rminus, rplus)),0.0);
+       nu        = (abs(Vy(i-1,j)) + sqrt(g*Hy(i-1,j)))*dt/dy;
+       cv        = nu.*(1-nu);
+       wplusy    = .5*cv.*(1-q);
        
-       if (max(max(abs(wplusx))) > .5) || (max(max(abs(wplusy))) > .5) || (max(max(abs(wminusx))) > .5) || (max(max(abs(wminusy))) > .5)
-           max(max(abs(wplusx)))
-           max(max(abs(wplusy)))
-           max(max(abs(wminusx)))
-           max(max(abs(wminusy)))
-           max(max(abs(imag(wplusx))))
-           max(max(abs(imag(wplusy))))
-           max(max(abs(imag(wminusx))))
-           max(max(abs(imag(wminusy))))
-       end
-              
+       % Minmod Flux Limiting
+%        duminus2   = phi(i-1,j) - phi(i-2,j);
+%        duplus2    = phi(i+1,j) - phi(i  ,j);
+%        duhalf2    = phi(i  ,j) - phi(i-1,j);
+%        rdenom     = max(duhalf2.^2, eps);
+%        rnumplus   = duplus2 .*duhalf2;
+%        rnumminus  = duminus2.*duhalf2;
+%        rplus      = rnumplus./rdenom;
+%        rminus     = rnumminus./rdenom;
+%        q          = max(min(1.0, min(rminus, rplus)),0.0);
+%        nu         = abs(Ux(i-1,j-1))*dt/dx;
+%        cv         = nu.*(1-nu);
+%        wminusphix = .5*cv.*(1-q);
+%        
+%        duminus2  = phi(i  ,j) - phi(i-1,j);
+%        duplus2   = phi(i+2,j) - phi(i+1,j);
+%        duhalf2   = phi(i+1,j) - phi(i  ,j);
+%        rdenom    = max(duhalf2.^2, eps);
+%        rnumplus  = duplus2 .*duhalf2;
+%        rnumminus = duminus2.*duhalf2;
+%        rplus     = rnumplus./rdenom;
+%        rminus    = rnumminus./rdenom;
+%        q         = max(min(1.0, min(rminus, rplus)),0.0);
+%        nu        = abs(Ux(i,j-1))*dt/dx;
+%        cv        = nu.*(1-nu);
+%        wplusphix = .5*cv.*(1-q);       
+%        
+%        duminus2   = phi(i,j-1) - phi(i,j-2);
+%        duplus2    = phi(i,j+1) - phi(i,j  );
+%        duhalf2    = phi(i,j  ) - phi(i,j-1);
+%        rdenom     = max(duhalf2.^2, eps);
+%        rnumplus   = duplus2 .*duhalf2;
+%        rnumminus  = duminus2.*duhalf2;
+%        rplus      = rnumplus./rdenom;
+%        rminus     = rnumminus./rdenom;
+%        q          = max(min(1.0, min(rminus, rplus)),0.0);
+%        nu         = abs(Vy(i-1,j-1))*dt/dy;
+%        cv         = nu.*(1-nu);
+%        wminusphiy = .5*cv.*(1-q);
+%        
+%        duminus2  = phi(i,j  ) - phi(i,j-1);
+%        duplus2   = phi(i,j+2) - phi(i,j+1);
+%        duhalf2   = phi(i,j+1) - phi(i,j  );
+%        rdenom    = max(duhalf2.^2, eps);
+%        rnumplus  = duplus2.*duhalf2;
+%        rnumminus = duminus2.*duhalf2;
+%        rplus     = rnumplus./rdenom;
+%        rminus    = rnumminus./rdenom;
+%        q         = max(min(1.0, min(rminus, rplus)),0.0);
+%        nu        = abs(Vy(i-1,j))*dt/dy;
+%        cv        = nu.*(1-nu);
+%        wplusphiy = .5*cv.*(1-q);
+
+       % Superbee
+       duminus2   = phi(i-1,j) - phi(i-2,j);
+       duplus2    = phi(i+1,j) - phi(i  ,j);
+       duhalf2    = phi(i  ,j) - phi(i-1,j);
+       rdenom     = max(duhalf2.^2, eps);
+       rnumplus   = duplus2 .*duhalf2;
+       rnumminus  = duminus2.*duhalf2;
+       rplus      = rnumplus./rdenom;
+       rminus     = rnumminus./rdenom;
+       q          = max(0.0, max(min(1.0, 2*min(rminus, rplus)),...
+                    min(2.0, min(rminus, rplus))));
+       nu         = abs(Ux(i-1,j-1))*dt/dx;
+       cv         = nu.*(1-nu);
+       wminusphix = 0.5*cv.*(1-q);
+       
+       duminus2  = phi(i  ,j) - phi(i-1,j);
+       duplus2   = phi(i+2,j) - phi(i+1,j);
+       duhalf2   = phi(i+1,j) - phi(i  ,j);
+       rdenom    = max(duhalf2.^2, eps);
+       rnumplus  = duplus2 .*duhalf2;
+       rnumminus = duminus2.*duhalf2;
+       rplus     = rnumplus./rdenom;
+       rminus    = rnumminus./rdenom;
+       q         = max(0.0, max(min(1.0, 2*min(rminus, rplus)),...
+                    min(2.0, min(rminus, rplus))));
+       nu        = abs(Ux(i,j-1))*dt/dx;
+       cv        = nu.*(1-nu);
+       wplusphix = .5*cv.*(1-q);       
+       
+       duminus2   = phi(i,j-1) - phi(i,j-2);
+       duplus2    = phi(i,j+1) - phi(i,j  );
+       duhalf2    = phi(i,j  ) - phi(i,j-1);
+       rdenom     = max(duhalf2.^2, eps);
+       rnumplus   = duplus2 .*duhalf2;
+       rnumminus  = duminus2.*duhalf2;
+       rplus      = rnumplus./rdenom;
+       rminus     = rnumminus./rdenom;
+       q          = max(0.0, max(min(1.0, 2*min(rminus, rplus)),...
+                    min(2.0, min(rminus, rplus))));
+       nu         = abs(Vy(i-1,j-1))*dt/dy;
+       cv         = nu.*(1-nu);
+       wminusphiy = .5*cv.*(1-q);
+       
+       duminus2  = phi(i,j  ) - phi(i,j-1);
+       duplus2   = phi(i,j+2) - phi(i,j+1);
+       duhalf2   = phi(i,j+1) - phi(i,j  );
+       rdenom    = max(duhalf2.^2, eps);
+       rnumplus  = duplus2.*duhalf2;
+       rnumminus = duminus2.*duhalf2;
+       rplus     = rnumplus./rdenom;
+       rminus    = rnumminus./rdenom;
+       q         = max(0.0, max(min(1.0, 2*min(rminus, rplus)),...
+                    min(2.0, min(rminus, rplus))));
+       nu        = abs(Vy(i-1,j))*dt/dy;
+       cv        = nu.*(1-nu);
+       wplusphiy = .5*cv.*(1-q);
+       
        % height
        phi (i,j) = phi (i,j) - (dt/(2*dx))*(Ux (i,j-1)./Hx(i,j-1)...
            + Ux (i-1,j-1)./Hx(i-1,j-1)) .* (phix(i,j-1)-phix(i-1,j-1))...
            - (dt/(2*dy))*(Vy (i-1,j)./Hy(i-1,j)...
            + Vy (i-1,j-1)./Hy(i-1,j-1)) .* (phiy(i-1,j)-phiy(i-1,j-1))...
-           - wminusx.*(phi(i,j) - phi(i-1,j)) + wplusx.*(phi(i+1,j)-phi(i,j))...
-           - wminusy.*(phi(i,j) - phi(i,j-1)) + wplusy.*(phi(i,j+1)-phi(i,j));
-                     
+           - wminusphix.*(phi(i,j) - phi(i-1,j)) + wplusphix.*(phi(i+1,j)-phi(i,j))...
+           - wminusphiy.*(phi(i,j) - phi(i,j-1)) + wplusphiy.*(phi(i,j+1)-phi(i,j));
+
        % height
        H (i,j) = H (i,j)...
            - (dt/dx)*(Ux (i,j-1)-Ux (i-1,j-1))...
@@ -275,7 +374,7 @@ while get (stop,'value') == 0
           drawnow
           
           figure(3);
-          set (uplot,'zdata',wminusx(i-2,j-2),'cdata',U(i,j));
+          set (uplot,'zdata',wminusphix(i-2,j-2),'cdata',U(i,j));
           drawnow
           
           figure(4);
@@ -290,69 +389,3 @@ while get (stop,'value') == 0
    if any (any (isinf (H))), break, end  % Unstable, restart
 end
 % close (figure(1)), close(figure(2))
-
-% ------------------------------------
-
-function D = droplet (height,width)
-% DROPLET  2D Gaussian
-% D = droplet (height,width)
-   [x,y] = ndgrid (-1:(2/(width-1)):1);
-   D = height*exp (-5*(x.^2+y.^2));
-
-% ------------------------------------
-
-function [surfplot,phiplot,uplot,vplot,top,start,stop] = initgraphics (n)
-% INITGRAPHICS  Initialize graphics for shallow_water.
-% [surfplot,top,start,stop] = initgraphics (n)
-% returns handles to a surface plot, its title, and two uicontrol toggles.
-
-   if exist ('bigscreen','file')
-      bigscreen
-   end
-   clf
-   shg
-   figure(1);
-   set (gcf,'numbertitle','off','name','Shallow_water')
-   x = (0:n-1)/(n-1);
-   surfplot = surf (x,x,ones (n,n),zeros (n,n));
-   grid off
-   axis ([0 1 0 1 -1 3])
-   caxis ([-1 1])
-   shading faceted
-   c = (1:64)'/64;
-   cyan = [0*c c c];
-   colormap (cyan)
-   xlabel('X'); ylabel('Y');
-   top = title ('Click start');
-   start = uicontrol ('position',[20 20 80 20],'style','toggle','string','start');
-   stop = uicontrol ('position',[120 20 80 20],'style','toggle','string','stop');
-   
-   figure(2);
-   phiplot = surf (x,x,ones (n,n),zeros (n,n));
-   grid off
-   axis([0 1 0 1 -1 3])
-   caxis  ([-1 1])
-   shading faceted
-   r = (1:64)'/64;
-   red = [r r 0*r];
-   colormap(red)
-   
-   figure(3);
-   uplot = surf (x,x,ones (n,n),zeros (n,n));
-   grid off
-%    axis([0 1 0 1 -1 3])
-   caxis  ([-1 1])
-   shading faceted
-   r = (1:64)'/64;
-   red = [r r 0*r];
-   colormap(red)
-   
-   figure(4);
-   vplot = surf (x,x,ones (n,n),zeros (n,n));
-   grid off
-   axis([0 1 0 1 -1 3])
-   caxis  ([-1 1])
-   shading faceted
-   r = (1:64)'/64;
-   red = [r r 0*r];
-   colormap(red)

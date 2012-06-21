@@ -1,4 +1,3 @@
-function shallow_water
 % SHALLOW_WATER
 % MATLAB version of: WAVE -- 2D Shallow Water Model
 % New Mexico Supercomputing Challenge, Glorieta Kickoff 2007
@@ -114,7 +113,8 @@ while get (stop,'value') == 0
            (phi(i+1,j+1)-phi(i,j+1));
        
        % height
-       Hx (i,j) = (H (i+1,j+1)+H (i,j+1))/2 - dt/(2*dx)*(U (i+1,j+1)-U (i,j+1));
+       Hx (i,j) = (H (i+1,j+1)+H (i,j+1))/2 ...
+           - dt/(2*dx)*(U (i+1,j+1)-U (i,j+1));
    
        % x momentum
        Ux (i,j) = (U (i+1,j+1)+U (i,j+1))/2 -  ...
@@ -216,25 +216,16 @@ while get (stop,'value') == 0
        cv = nu.*(1-nu);
        wplusy = .5*cv.*(1-q);
        
-       if (max(max(abs(wplusx))) > .5) || (max(max(abs(wplusy))) > .5) || (max(max(abs(wminusx))) > .5) || (max(max(abs(wminusy))) > .5)
-           max(max(abs(wplusx)))
-           max(max(abs(wplusy)))
-           max(max(abs(wminusx)))
-           max(max(abs(wminusy)))
-           max(max(abs(imag(wplusx))))
-           max(max(abs(imag(wplusy))))
-           max(max(abs(imag(wminusx))))
-           max(max(abs(imag(wminusy))))
-       end
-              
+       dphiplus1
+       
        % height
        phi (i,j) = phi (i,j) - (dt/(2*dx))*(Ux (i,j-1)./Hx(i,j-1)...
            + Ux (i-1,j-1)./Hx(i-1,j-1)) .* (phix(i,j-1)-phix(i-1,j-1))...
            - (dt/(2*dy))*(Vy (i-1,j)./Hy(i-1,j)...
-           + Vy (i-1,j-1)./Hy(i-1,j-1)) .* (phiy(i-1,j)-phiy(i-1,j-1))...
-           - wminusx.*(phi(i,j) - phi(i-1,j)) + wplusx.*(phi(i+1,j)-phi(i,j))...
-           - wminusy.*(phi(i,j) - phi(i,j-1)) + wplusy.*(phi(i,j+1)-phi(i,j));
-                     
+           + Vy (i-1,j-1)./Hy(i-1,j-1)) .* (phiy(i-1,j)-phiy(i-1,j-1));...
+%            - wminusx.*(phi(i,j) - phi(i-1,j)) + wplusx.*(phi(i+1,j)-phi(i,j))...
+%            - wminusy.*(phi(i,j) - phi(i,j-1)) + wplusy.*(phi(i,j+1)-phi(i,j));
+
        % height
        H (i,j) = H (i,j)...
            - (dt/dx)*(Ux (i,j-1)-Ux (i-1,j-1))...
@@ -290,69 +281,3 @@ while get (stop,'value') == 0
    if any (any (isinf (H))), break, end  % Unstable, restart
 end
 % close (figure(1)), close(figure(2))
-
-% ------------------------------------
-
-function D = droplet (height,width)
-% DROPLET  2D Gaussian
-% D = droplet (height,width)
-   [x,y] = ndgrid (-1:(2/(width-1)):1);
-   D = height*exp (-5*(x.^2+y.^2));
-
-% ------------------------------------
-
-function [surfplot,phiplot,uplot,vplot,top,start,stop] = initgraphics (n)
-% INITGRAPHICS  Initialize graphics for shallow_water.
-% [surfplot,top,start,stop] = initgraphics (n)
-% returns handles to a surface plot, its title, and two uicontrol toggles.
-
-   if exist ('bigscreen','file')
-      bigscreen
-   end
-   clf
-   shg
-   figure(1);
-   set (gcf,'numbertitle','off','name','Shallow_water')
-   x = (0:n-1)/(n-1);
-   surfplot = surf (x,x,ones (n,n),zeros (n,n));
-   grid off
-   axis ([0 1 0 1 -1 3])
-   caxis ([-1 1])
-   shading faceted
-   c = (1:64)'/64;
-   cyan = [0*c c c];
-   colormap (cyan)
-   xlabel('X'); ylabel('Y');
-   top = title ('Click start');
-   start = uicontrol ('position',[20 20 80 20],'style','toggle','string','start');
-   stop = uicontrol ('position',[120 20 80 20],'style','toggle','string','stop');
-   
-   figure(2);
-   phiplot = surf (x,x,ones (n,n),zeros (n,n));
-   grid off
-   axis([0 1 0 1 -1 3])
-   caxis  ([-1 1])
-   shading faceted
-   r = (1:64)'/64;
-   red = [r r 0*r];
-   colormap(red)
-   
-   figure(3);
-   uplot = surf (x,x,ones (n,n),zeros (n,n));
-   grid off
-%    axis([0 1 0 1 -1 3])
-   caxis  ([-1 1])
-   shading faceted
-   r = (1:64)'/64;
-   red = [r r 0*r];
-   colormap(red)
-   
-   figure(4);
-   vplot = surf (x,x,ones (n,n),zeros (n,n));
-   grid off
-   axis([0 1 0 1 -1 3])
-   caxis  ([-1 1])
-   shading faceted
-   r = (1:64)'/64;
-   red = [r r 0*r];
-   colormap(red)
