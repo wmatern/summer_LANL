@@ -29,7 +29,7 @@ g  = 9.8;                 % gravitational constant
 dt = 0.02;                % hardwired timestep
 dx = 1.0;
 dy = 1.0;
-m  = 3;                   % number of materials
+m  = 2;                   % number of materials
 
 nplotstep = 8;            % plot interval
 ndrops = 5;               % maximum number of drops
@@ -69,18 +69,18 @@ while get (stop,'value') == 0
            
            % Concentration of materials added
            % Material 1 added
-           i = ceil (.5 *(n-w))+(1:ceil(w/2));
+           i = ceil (.5 *(n-w))+(1:ceil(w));%/2));
            j = ceil (.5 *(n-w))+(1:w);
-           S = ones(ceil(length(D)/2),length(D));
+           S = ones(ceil(length(D)),length(D));
            phi(i,j,2) = hconc*S;
-           
-           % Material 2 added
-           i = ceil (.5 *(n-w))+(ceil(w/2)+1:w+1);
-           j = ceil (.5 *(n-w))+(1:w);
-           S = ones(ceil(length(D)/2),length(D));
-           phi(i,j,3) = hconc*S;
-           
-           phi(:,:,1) = phi(:,:,1) - phi(:,:,2) - phi(:,:,3);
+%            
+%            % Material 2 added
+%            i = ceil (.5 *(n-w))+(ceil(w/2)+1:w+1);
+%            j = ceil (.5 *(n-w))+(1:w);
+%            S = ones(ceil(length(D)/2),length(D));
+%            phi(i,j,3) = hconc*S;
+%            
+           phi(:,:,1) = phi(:,:,1) - phi(:,:,2);% - phi(:,:,3);
            
            i = ceil (.5 *(n-w))+(1:w);
            j = ceil (.5 *(n-w))+(1:w);
@@ -307,7 +307,6 @@ while get (stop,'value') == 0
                     min(2.0, min(rminus, rplus))));
        nu         = abs(Ux(i-1,j-1))*dt/dx;
        cv         = nu.*(1-nu);
-       
        wminusphix(:,:,k) = 0.5*cv.*(1-q);
        
        duminus2  = phi(i  ,j,k) - phi(i-1,j,k);
@@ -399,7 +398,7 @@ while get (stop,'value') == 0
           drawnow
           
           figure(2);
-          set (phiplot,'zdata',H (i,j),'cdata',phi(i,j,3));
+          set (phiplot,'zdata',H (i,j),'cdata',phi(i,j,1));
           drawnow
           
           for fig = 3:m+2
