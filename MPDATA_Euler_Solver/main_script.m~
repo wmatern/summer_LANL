@@ -1,0 +1,221 @@
+clear all; clc; %close all;
+% Lax-Wendroff Scheme for solving the compressible Euler Equations
+
+% Domain initialization
+nx   =  64 ; ny   =  64 ;
+xmax =  2.0; ymax =  2.0;
+xmin = -2.0; ymin = -2.0;
+dx = (xmax-xmin)/(nx-1);
+dy = (ymax-ymin)/(ny-1);
+[X,Y] = meshgrid(xmin:dx:xmax,ymin:dy:ymax);
+
+% Time initialization
+tmax = 100;
+CFL  = 0.05;
+dt   = CFL*min(dx,dy);
+Cx   = dt/dx;
+Cy   = dt/dy;
+
+% Switches
+TVD = 3;                  % 1=MinMod, 2=Superbee, 3=Nonlinear Superbee
+BC  = 2;                  % 1=Reflective, 2=Periodic
+SCH = 2;                  % 1=Lax-Wendroff, 2=MPDATA
+
+% Physical Constants
+gamma = 1.4;
+
+% Initial Conditions
+RHO = ones (ny+4,nx+4);
+MX  = zeros(ny+4,nx+4);
+MY  = ones(ny+4,nx+4);
+E   = ones (ny+4,nx+4)*20;
+P   = ones (ny+4,nx+4);
+
+% RHO(3:ny+2,3:nx+2) = exp(-2*(X.^2+Y.^2)) + 1;
+% RHO(ny/2-ny/4:ny/2+ny/4,:) = 2;
+RHO(ny/2+2:ny+4,:) = 0.5;
+MY = -RHO;
+E = RHO;
+P = (gamma-1)*(E-0.5*((MX.^2 + MY.^2)./RHO));
+% MY (ny/2+2:ny+4,:) = 0.5;
+% P  (ny/2+2:ny+4,:) = 0.5;
+
+figure(1),surf(X,Y,RHO(3:ny+2,3:nx+2)), title('RHO')
+figure(2),surf(X,Y,MY(3:ny+2,3:nx+2) ), title('MY' )
+figure(3),plot(MY(:,34),'.-'         ), title('MY' )
+
+RHO_New = RHO;
+E_New   = E  ;
+
+for t=0:dt:tmax
+% Boundary Conditions
+if BC == 1 % Reflective BC
+    RHO(2,:) = RHO(3,:); P(2,:) = P(3,:); E(2,:) = E(3,:);
+    RHO(1,:) = RHO(2,:); P(1,:) = P(2,:); E(1,:) = E(2,:);
+    RHO(:,2) = RHO(:,3); P(:,2) = P(:,3); E(:,2) = E(:,3);
+    RHO(:,1) = RHO(:,2); P(:,1) = P(:,2); E(:,1) = E(:,2);
+    
+    MX(2,:) = -MX(3,:); MY(2,:) = -MY(3,:);
+    MX(1,:) =  MX(2,:); MY(1,:) =  MY(2,:);
+    MX(:,2) = -MX(:,3); MY(:,2) = -MY(:,3);
+    MX(:,1) =  MX(:,2); MY(:,1) =  MY(:,2);
+    
+    RHO(ny+3,:) = RHO(ny+2,:); P(ny+3,:) = P(ny+2,:); E(ny+3,:) = E(ny+2,:);
+    RHO(ny+4,:) = RHO(ny+2,:); P(ny+4,:) = P(ny+2,:); E(ny+4,:) = E(ny+2,:);
+    RHO(:,nx+3) = RHO(:,nx+2); P(:,nx+3) = P(:,nx+2); E(:,nx+3) = E(:,nx+2);
+    RHO(:,nx+4) = RHO(:,nx+2); P(:,nx+4) = P(:,nx+2); E(:,nx+4) = E(:,nx+2);
+    
+    MX(ny+3,:) = -MX(ny+2,:); MY(ny+3,:) = -MY(ny+2,:);
+    MX(ny+4,:) =  MX(ny+3,:); MY(ny+4,:) =  MY(ny+3,:);
+    MX(:,nx+3) = -MX(:,nx+2); MY(:,nx+3) = -MY(:,nx+2);
+    MX(:,nx+4) =  MX(:,nx+3); MY(:,nx+4) =  MY(:,nx+3);
+    
+elseif BC == 2 % Periodic BC
+    RHO = Periodic_BCx(RHO, nx);
+    MX  = Periodic_BCx(MX , nx);
+    MY  = Periodic_BCx(MY , nx);
+    E   = Periodic_BCx(E  , nx);
+    P   = Periodic_BCx(P  , nx);
+    
+    RHO = Periodic_BCy(RHO, ny);
+    MX  = Periodic_BCy(MX , ny);
+    MY  = Periodic_BCy(MY , ny);
+    E   = Periodic_BCy(E  , ny);
+    P   = Periodic_BCy(P  , ny);
+end
+    
+% Flow Solver
+j = 3:ny+2;
+i = 3:nx+2;
+
+% Mass Conservation
+U_halfp (j,i) = (MX(j,i+1)./RHO(j,i+1) + MX(j,i  )./RHO(j,i  ))*Cx/2;
+U_halfm (j,i) = (MX(j,i  )./RHO(j,i  ) + MX(j,i-1)./RHO(j,i-1))*Cx/2;
+V_halfp (j,i) = (MY(j+1,i)./RHO(j+1,i) + MY(j,i  )./RHO(j,i  ))*Cy/2;
+V_halfm (j,i) = (MY(j,i  )./RHO(j,i  ) + MY(j-1,i)./RHO(j-1,i))*Cy/2;
+
+RHO_New (j,i) = RHO(j,i) - (MPDATA(RHO(j,i  ),RHO(j,i+1),U_halfp(j,i))...
+                          - MPDATA(RHO(j,i-1),RHO(j,i  ),U_halfm(j,i)))...
+                         - (MPDATA(RHO(j,i  ),RHO(j+1,i),V_halfp(j,i))...
+                          - MPDATA(RHO(j-1,i),RHO(j,i  ),V_halfm(j,i)));
+
+RHO_New = Periodic_BCx(RHO_New, nx);
+RHO_New = Periodic_BCy(RHO_New, ny);
+
+
+U_d_p   (j,i) = dt/dx*((abs(U_halfp(j,i))-U_halfp(j,i).^2).*...
+    d_px(j,i  ,RHO_New) - U_halfp(j,i).*V_halfp(j,i).*d_py(j,i  ,RHO_New));
+U_d_m   (j,i) = dt/dx*((abs(U_halfm(j,i))-U_halfm(j,i).^2).*...
+    d_px(j,i-1,RHO_New) - U_halfm(j,i).*V_halfm(j,i).*d_py(j,i-1,RHO_New));
+V_d_p   (j,i) = dt/dy*((abs(V_halfp(j,i))-V_halfp(j,i).^2).*...
+    d_py(j  ,i,RHO_New) - U_halfp(j,i).*V_halfp(j,i).*d_px(j  ,i,RHO_New));
+V_d_m   (j,i) = dt/dy*((abs(V_halfm(j,i))-V_halfm(j,i).^2).*...
+    d_py(j-1,i,RHO_New) - U_halfm(j,i).*V_halfm(j,i).*d_px(j-1,i,RHO_New));
+
+RHO_New (j,i) = RHO_New(j,i) - (MPDATA(RHO_New(j,i  ),RHO_New(j,i+1),U_d_p(j,i))...
+                              - MPDATA(RHO_New(j,i-1),RHO_New(j,i  ),U_d_m(j,i)))...
+                             - (MPDATA(RHO_New(j,i  ),RHO_New(j+1,i),V_d_p(j,i))...
+                              - MPDATA(RHO_New(j-1,i),RHO_New(j,i  ),V_d_m(j,i)));
+                          
+% X Momentum
+MX = abs(MX);
+MX_New (j,i) = MX(j,i) - (MPDATA(MX(j,i  ),MX(j,i+1),U_halfp(j,i))...
+                        - MPDATA(MX(j,i-1),MX(j,i  ),U_halfm(j,i)))...
+                       - (MPDATA(MX(j,i  ),MX(j+1,i),V_halfp(j,i))...
+                        - MPDATA(MX(j-1,i),MX(j,i  ),V_halfm(j,i)))...
+                       - (P(j,i+1)-P(j,i-1))/2*Cx;
+
+MX_New = Periodic_BCx(MX_New, nx);
+MX_New = Periodic_BCy(MX_New, ny);
+
+U_d_p   (j,i) = dt/dx*((abs(U_halfp(j,i))-U_halfp(j,i).^2).*...
+    d_px(j,i  ,MX_New) - U_halfp(j,i).*V_halfp(j,i).*d_py(j,i  ,MX_New));
+U_d_m   (j,i) = dt/dx*((abs(U_halfm(j,i))-U_halfm(j,i).^2).*...
+    d_px(j,i-1,MX_New) - U_halfm(j,i).*V_halfm(j,i).*d_py(j,i-1,MX_New));
+V_d_p   (j,i) = dt/dy*((abs(V_halfp(j,i))-V_halfp(j,i).^2).*...
+    d_py(j  ,i,MX_New) - U_halfp(j,i).*V_halfp(j,i).*d_px(j  ,i,MX_New));
+V_d_m   (j,i) = dt/dy*((abs(V_halfm(j,i))-V_halfm(j,i).^2).*...
+    d_py(j-1,i,MX_New) - U_halfm(j,i).*V_halfm(j,i).*d_px(j-1,i,MX_New));
+
+MX_New (j,i) = MX_New(j,i) - (MPDATA(MX_New(j,i  ),MX_New(j,i+1),U_d_p(j,i))...
+                            - MPDATA(MX_New(j,i-1),MX_New(j,i  ),U_d_m(j,i)))...
+                           - (MPDATA(MX_New(j,i  ),MX_New(j+1,i),V_d_p(j,i))...
+                            - MPDATA(MX_New(j-1,i),MX_New(j,i  ),V_d_m(j,i)));
+
+% Y Momentum
+MY_New (j,i) = MY(j,i) - (MPDATA(MY(j,i  ),MY(j,i+1),U_halfp(j,i))...
+                        - MPDATA(MY(j,i-1),MY(j,i  ),U_halfm(j,i)))...
+                       - (MPDATA(MY(j,i  ),MY(j+1,i),V_halfp(j,i))...
+                        - MPDATA(MY(j-1,i),MY(j,i  ),V_halfm(j,i)))...
+                       - (P(j+1,i)-P(j-1,i))/2*Cy;
+
+MY_New = Periodic_BCx(MY_New, nx);
+MY_New = Periodic_BCy(MY_New, ny);
+
+U_d_p   (j,i) = dt/dx*((abs(U_halfp(j,i))-U_halfp(j,i).^2).*...
+    d_px(j,i  ,abs(MY_New)) - U_halfp(j,i).*V_halfp(j,i).*d_py(j,i  ,abs(MY_New)));
+U_d_m   (j,i) = dt/dx*((abs(U_halfm(j,i))-U_halfm(j,i).^2).*...
+    d_px(j,i-1,MY_New) - U_halfm(j,i).*V_halfm(j,i).*d_py(j,i-1,MY_New));
+V_d_p   (j,i) = dt/dy*((abs(V_halfp(j,i))-V_halfp(j,i).^2).*...
+    d_py(j  ,i,MY_New) - U_halfp(j,i).*V_halfp(j,i).*d_px(j  ,i,MY_New));
+V_d_m   (j,i) = dt/dy*((abs(V_halfm(j,i))-V_halfm(j,i).^2).*...
+    d_py(j-1,i,MY_New) - U_halfm(j,i).*V_halfm(j,i).*d_px(j-1,i,MY_New));
+
+MY_New (j,i) = MY_New(j,i) - (MPDATA(MY_New(j,i  ),MY_New(j,i+1),U_d_p(j,i))...
+                            - MPDATA(MY_New(j,i-1),MY_New(j,i  ),U_d_m(j,i)))...
+                           - (MPDATA(MY_New(j,i  ),MY_New(j+1,i),V_d_p(j,i))...
+                            - MPDATA(MY_New(j-1,i),MY_New(j,i  ),V_d_m(j,i)));
+
+% Energy Equation
+EN = E + P;
+U_halfp (j,i) = (MX(j,i+1)./RHO(j,i+1) + MX(j,i  )./RHO(j,i  ))*Cx/2;
+U_halfm (j,i) = (MX(j,i  )./RHO(j,i  ) + MX(j,i-1)./RHO(j,i-1))*Cx/2;
+V_halfp (j,i) = (MY(j+1,i)./RHO(j+1,i) + MY(j,i  )./RHO(j,i  ))*Cy/2;
+V_halfm (j,i) = (MY(j,i  )./RHO(j,i  ) + MY(j-1,i)./RHO(j-1,i))*Cy/2;
+
+E_New (j,i) = E(j,i) - (MPDATA(EN(j,i  ),EN(j,i+1),U_halfp(j,i))...
+                       - MPDATA(EN(j,i-1),EN(j,i  ),U_halfm(j,i)))...
+                      - (MPDATA(EN(j,i  ),EN(j+1,i),V_halfp(j,i))...
+                       - MPDATA(EN(j-1,i),EN(j,i  ),V_halfm(j,i)));
+
+EN = E_New + P;
+EN = Periodic_BCx(EN, nx);
+EN = Periodic_BCy(EN, ny);
+                      
+U_d_p   (j,i) = dt/dx*((abs(U_halfp(j,i))-U_halfp(j,i).^2).*...
+    d_px(j,i  ,EN) - U_halfp(j,i).*V_halfp(j,i).*d_py(j,i  ,EN));
+U_d_m   (j,i) = dt/dx*((abs(U_halfm(j,i))-U_halfm(j,i).^2).*...
+    d_px(j,i-1,EN) - U_halfm(j,i).*V_halfm(j,i).*d_py(j,i-1,EN));
+V_d_p   (j,i) = dt/dy*((abs(V_halfp(j,i))-V_halfp(j,i).^2).*...
+    d_py(j  ,i,EN) - U_halfp(j,i).*V_halfp(j,i).*d_px(j  ,i,EN));
+V_d_m   (j,i) = dt/dy*((abs(V_halfm(j,i))-V_halfm(j,i).^2).*...
+    d_py(j-1,i,EN) - U_halfm(j,i).*V_halfm(j,i).*d_px(j-1,i,EN));
+
+E_New (j,i) = (E_New(j,i))...
+                         - (MPDATA(EN(j,i  ),EN(j,i+1),U_d_p(j,i)) ...
+                          - MPDATA(EN(j,i-1),EN(j,i  ),U_d_m(j,i)))...
+                         - (MPDATA(EN(j,i  ),EN(j+1,i),V_d_p(j,i)) ...
+                          - MPDATA(EN(j-1,i),EN(j,i  ),V_d_m(j,i)));
+
+% Pressure
+E = E_New;
+P     (j,i) = (gamma-1)*(E(j,i)-0.5*((MX_New(j,i).^2 ...
+    + MY_New(j,i).^2)./RHO_New(j,i)));
+
+RHO(j,i) = RHO_New(j,i);
+MY (j,i) = MY_New (j,i);
+MX (j,i) = MX_New (j,i);
+
+plot1(1:length(j)  ,1) = RHO(j,34);
+if BC == 2, plot1(length(j)+j-2,1) = RHO(j,34); end
+
+if mod(t,50*dt) == 0
+%     figure(1),surf(X,Y,RHO(j,i))  , title('RHO')
+%     figure(2),surf(X,Y,MY (j,i))  , title('MY' )
+    figure(3),plot(plot1,'.-') , title('RHO')
+    axis([0 128 0 1.1])
+%     figure(4),surf(X,Y,MY(j,i)./RHO(j,i))  , title('V')
+end
+
+% if t>2.54, break; end
+end

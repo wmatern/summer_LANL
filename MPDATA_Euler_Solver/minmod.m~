@@ -1,0 +1,3 @@
+function m = minmod(a,b)
+
+m = 0.5 * (sign(a) + sign(b)).*(abs(a+b) - abs(a-b))
