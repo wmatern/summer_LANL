@@ -1,9 +1,9 @@
 clear all;
 %Mesh Generation
-nx = 64;
-ny = 64;
-Lx = 1;
-Ly = 1;
+nx = 65;
+ny = 65;
+Lx = 64;
+Ly = 64;
 xp = linspace(0,Lx,nx);
 yp = linspace(0,Ly,ny);
 [X,Y] = meshgrid(xp,yp);
@@ -24,7 +24,7 @@ end
 BC = 1; %0 - stationary boundary %1 - periodic
 
 %Variable initialization
-u = -1;
+u = 1;
 v = 0;
 a = 1;
 phip = zeros(nx,ny);
@@ -49,17 +49,10 @@ A(n) = abs(.5*(X(tri(n,1)).*Y(tri(n,2)) - X(tri(n,1)).*Y(tri(n,3))...
 u = -u;
 v = -v;
 %This is where the matrix calculation should go
-%
-%END matrix calc
-
-dt = .1;
-nt = 1000;
-for t=0:dt:dt*nt
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    M = zeros(nx*ny,nx*ny);
+M = zeros(nx*ny,nx*ny);
 K = zeros(nx*ny,nx*ny);
-    U = 0*exp(-1000*(X-.2).^2) + 1;
-V = 0*eps*(randi([-1,1],length(X),1));
+U = 0*exp(-1000*(X-.2).^2) + u;
+V = 0*eps*(randi([-1,1],length(X),1)) + v;
 %figure(2);
 %plot3(X,Y,V,'.');
 for n = 1:length(tri)
@@ -132,9 +125,25 @@ K = sparse(K);
 
 options = odeset('Mass',M);
 f = @(t, phi)(-K * phi);
+%END matrix calc
+
+dt = .02* Lx/(nx-1);
+nt = 10000;
+
+%Simplify matrix to be solved
+theta = .5; %1 - forward Euler
+A = (M+(1-theta)*dt*K);
+[L,U,P] = lu(A);
+B = P*(M - theta*dt*K);
+for t=0:dt:dt*nt
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[T,phinew] = ode45(f,[0 dt],phi,options);
-phi = phinew(end,1:end)';
+%[T,phinew] = ode2(f,[0 dt],phi,options);
+%phi = phinew(end,1:end)';
+
+phi = L \ (B*phi);
+phi = U \ phi;
+
 if BC == 0
     phi_plot(nb) = phi;
 elseif BC == 1
@@ -144,12 +153,13 @@ elseif BC == 1
     temp(alias(:,2)) = temp(alias(:,1)); %Having trouble with repeats
     temp(alias(:,2)) = temp(alias(:,1));
     phi_plot = temp;
-    phi = phi_plot;
 end
-figure(1);
-%plot3(X,Y,phi_plot,'.');
-%trimesh(tri,X,Y,phi_plot);
-surf(reshape(X,nx,ny),reshape(Y,nx,ny),reshape(phi_plot,nx,ny));
-%plot(Y(2*ny:3*ny),phi_plot(2*ny:3*ny),'.');
-drawnow;
+if rem(t/dt,100) == 0
+    figure(1);
+    %plot3(X,Y,phi_plot,'.');
+    %trimesh(tri,X,Y,phi_plot);
+    surf(reshape(X,nx,ny),reshape(Y,nx,ny),reshape(phi_plot,nx,ny));
+    %plot(Y(2*ny:3*ny),phi_plot(2*ny:3*ny),'.');
+    drawnow;
+end
 end
