@@ -8,8 +8,8 @@ kappa = 1/3;              % MUSCL interpolant parameter
 Slope_Mod = 1;            % 1 means on
 BC        = 2;            % 1=reflection, 2=periodic
 ic        = 2;            % 1=zero vel, 2=only u vel, 3=rotating
-SCH       = 3;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
-TVD       = 2;            % 1=minmod, 2=superbee
+SCH       = 2;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
+TVD       = 3;            % 1=minmod, 2=superbee
 
 % Problem Parameters
 nx = 64;                  % grid size

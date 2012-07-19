@@ -216,6 +216,9 @@ elseif BC == 2 && SCH == 4
     a = 1;
     U = reshape(MX_t./RHO_New,nx*ny,1);
     V = reshape(MY_t./RHO_New,nx*ny,1);
+    xp = linspace(0,Lx,nx);
+    yp = linspace(0,Ly,ny);
+    [X,Y] = meshgrid(xp,yp);
     X = reshape(X,nx*ny,1);
     Y = reshape(Y,nx*ny,1);
     %tri = delaunay(X,Y);
@@ -245,25 +248,14 @@ elseif BC == 2 && SCH == 4
     A(n) = abs(.5*(X(tri(n,1)).*Y(tri(n,2)) - X(tri(n,1)).*Y(tri(n,3))...
                  + X(tri(n,2)).*Y(tri(n,3)) - X(tri(n,2)).*Y(tri(n,1))...
                  + X(tri(n,3)).*Y(tri(n,1)) - X(tri(n,3)).*Y(tri(n,2))))';
-    tic
     for n = 1:length(tri)
         if rem(n,2) == 1
             u = -(U(tri(n,3))+U(tri(n,2))+U(tri(n,1))+U(tri(n+1,2)))/4;
             v = -(V(tri(n,3))+V(tri(n,2))+V(tri(n,1))+V(tri(n+1,2)))/4;
-            x = (X(tri(n,3))+X(tri(n,2))+X(tri(n,1))+X(tri(n+1,2)))/4;
-            y = (Y(tri(n,3))+Y(tri(n,2))+Y(tri(n,1))+Y(tri(n+1,2)))/4;
         else
             u = -(U(tri(n,3))+U(tri(n,2))+U(tri(n,1))+U(tri(n-1,1)))/4;
             v = -(V(tri(n,3))+V(tri(n,2))+V(tri(n,1))+V(tri(n-1,1)))/4;
-            x = (X(tri(n,3))+X(tri(n,2))+X(tri(n,1))+X(tri(n-1,1)))/4;
-            y = (Y(tri(n,3))+Y(tri(n,2))+Y(tri(n,1))+Y(tri(n-1,1)))/4;
         end
-        t_u(n) = u;
-        t_v(n) = v;
-        t_x(n) = x;
-        t_y(n) = y;
-        %v = -1;
-        %u = 0;
         uv_mag = sqrt(u^2+v^2);
         Me1(1:3,1:3) = A(n)*[1/6,1/12,1/12;1/12,1/6,1/12;1/12,1/12,1/6];
         Me2(1:3,1:3) = (a*h(n)*u/(12*uv_mag))*...
@@ -287,10 +279,6 @@ elseif BC == 2 && SCH == 4
         K(tri(n,2),tri(n,:)) = K(tri(n,2),tri(n,:)) + Ke2r2(1,1:3);
         K(tri(n,3),tri(n,:)) = K(tri(n,3),tri(n,:)) + Ke2r3(1,1:3);
     end
-    toc
-    figure(6);
-    plot3(t_x,t_y,t_v,'.');
-    
     %Enforce periodic boundary conditions.
     for m = 1:length(alias)
         K(:,alias(m,1)) = K(:,alias(m,1)) + K(:,alias(m,2));
@@ -305,22 +293,16 @@ elseif BC == 2 && SCH == 4
     K(:,alias(:,2)) = [];
     M(alias(:,2),:) = [];
     M(:,alias(:,2)) = [];
-    RHO_New(alias(:,2)) = [];
-    RHO_New = RHO_New';
+    phi(alias(:,2)) = [];
     
     M = sparse(M);
     K = sparse(K);
     
     options = odeset('Mass',M);
-    f = @(t, RHO_New)(-K * RHO_New);
+    f = @(t, phi)(-K * phi);
     
-    tic
-    [T,RHO_New] = ode45(f,[0 dt],RHO_New,options);
-    toc
-    RHO_New = RHO_New(end,1:end)';
-    %theta = 0; %1 - forward Euler
-    %A = (M+(1-theta)*dt*K);
-    %RHO_New = (M+(1-theta)*dt*K) \ ((M - theta*dt*K)*RHO_New);
+    [T,phi] = ode45(f,[0 dt],phi,options);
+    phi = phi(end,1:end)';
     
     %Restore the normal form of the variables
     temp = zeros((ny)*(nx),1);
