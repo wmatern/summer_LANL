@@ -7,14 +7,14 @@ kappa = 1/3;              % MUSCL interpolant parameter
 % Switches
 Slope_Mod = 1;            % 1 means on
 BC        = 2;            % 1=reflection, 2=periodic
-ic        = 2;            % 1=zero vel, 2=only u vel, 3=rotating
-SCH       = 4;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
+ic        = 4;            % 1=zero vel, 2=only u vel, 3=rotating
+SCH       = 0;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
 TVD       = 2;            % 1=minmod, 2=superbee
 
 % Problem Parameters
-nx = 64;                  % grid size
-ny = 64;                  % grid size
-n  = 64;                  % FIX THIS LATER!!!!!!!!!!!!!!
+nx = 200;                  % grid size
+ny = 200;                  % grid size
+n  = 200;                  % FIX THIS LATER!!!!!!!!!!!!!!
 g  = 9.8;                 % gravitational constant
 dt = 0.2;                % hardwired timestep
 dx = 1.0;
@@ -29,6 +29,12 @@ nplotstep = 8;            % plot interval
 
 % Outer loop, restarts.
 
+xp = linspace(0,nx,nx);
+yp = linspace(0,ny,ny);
+[X,Y] = meshgrid(xp,yp);
+X = reshape(X,nx*ny,1);
+Y = reshape(Y,nx*ny,1);
+
 if ic == 1
     H = ones (n+4,n+4); U = zeros (n+4,n+4); V = zeros (n+4,n+4);
 elseif ic == 2
@@ -36,12 +42,12 @@ elseif ic == 2
 elseif ic == 3
     H = ones (n+4,n+4); U = ones (n+4,n+4); V = zeros (n+4,n+4);
     U (3:n+2,3:n+2) = sqrt(X.^2./Y.^2); V (3:n+2,3:n+2) = Y./X;
+elseif ic == 4
+    H = ones (n+4,n+4); 
+    U = U_init(X,Y,nx,ny); 
+    V = V_init(X,Y,nx,ny);
+    quiver(reshape(X,nx,ny),reshape(Y,nx,ny),U(3:nx+2,3:ny+2),V(3:nx+2,3:ny+2));
 end
-xp = linspace(0,nx,nx);
-yp = linspace(0,ny,ny);
-[X,Y] = meshgrid(xp,yp);
-X = reshape(X',nx*ny,1);
-Y = reshape(Y',nx*ny,1);
 
 phi          = phi_init(X,Y,nx,ny);
 temp = zeros(nx+4,ny+4);
@@ -386,17 +392,25 @@ while nstep < 10000000
         phi = temp;
     end
     % Update plot
-    if mod((nstep*dt)*max(max(U)),nx) == 0
-        phi_analyt = phi_init(mod((X-nstep*dt*reshape(U(3:nx+2,3:ny+2),nx*ny,1)),nx),mod((Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1)),ny),nx,ny);
-        phi_analyt = reshape(phi_analyt,nx,ny); 
-        figure(1),plot(phi(3:nx+2,floor(ny/2)),'.-') , title('phi'), hold on
-        plot(phi_analyt,'r');
-        legend('FEM','Analytical');
-        hold off
-        drawnow;
-        filename = ['FEM_',num2str((nstep*dt)*max(max(U))/nx),'.dat'];
-        save(filename,'phi','phi_analyt');
+    if 0
+        if mod((nstep*dt)*max(max(U)),nx) == 0
+            phi_analyt = phi_init(mod((X-nstep*dt*reshape(U(3:nx+2,3:ny+2),nx*ny,1)),nx),mod((Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1)),ny),nx,ny);
+            phi_analyt = reshape(phi_analyt,nx,ny);
+            figure(1),plot(phi(3:nx+2,floor(ny/2)),'.-') , title('phi'), hold on
+            plot(phi_analyt,'r');
+            legend('FEM','Analytical');
+            hold off
+            drawnow;
+            filename = ['FEM_',num2str((nstep*dt)*max(max(U))/nx),'.dat'];
+            save(filename,'phi','phi_analyt');
+        end
+    elseif 1
+        phi_analyt = phi_init(mod(X-nstep*dt*reshape(U(3:nx+2,3:ny+2),nx*ny,1),nx),mod(Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1),ny),nx,ny); %Note that this only works for constant velocities
+        phi_analyt = reshape(phi_analyt,nx,ny);
+        figure(1), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi_analyt);
+        figure(2), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi(3:nx+2,3:ny+2));
     end
+    
     %         if any (any (isnan (H))), break, end  % Unstable, restart
     %         if any (any (isinf (H))), break, end  % Unstable, restart
     %         if nstep>80, break, end
