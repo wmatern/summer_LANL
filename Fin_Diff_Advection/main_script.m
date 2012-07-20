@@ -8,7 +8,7 @@ kappa = 1/3;              % MUSCL interpolant parameter
 Slope_Mod = 1;            % 1 means on
 BC        = 2;            % 1=reflection, 2=periodic
 ic        = 2;            % 1=zero vel, 2=only u vel, 3=rotating
-SCH       = 3;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
+SCH       = 4;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
 TVD       = 2;            % 1=minmod, 2=superbee
 
 % Problem Parameters
@@ -386,14 +386,16 @@ while nstep < 10000000
         phi = temp;
     end
     % Update plot
-    if mod (nstep,nplotstep) == 0
+    if mod((nstep*dt)*max(max(U)),nx) == 0
         phi_analyt = phi_init(mod((X-nstep*dt*reshape(U(3:nx+2,3:ny+2),nx*ny,1)),nx),mod((Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1)),ny),nx,ny);
         phi_analyt = reshape(phi_analyt,nx,ny); 
         figure(1),plot(phi(3:nx+2,floor(ny/2)),'.-') , title('phi'), hold on
         plot(phi_analyt,'r');
-        legend('Lax-Wendroff','Analytical');
+        legend('FEM','Analytical');
         hold off
         drawnow;
+        filename = ['FEM_',num2str((nstep*dt)*max(max(U))/nx),'.dat'];
+        save(filename,'phi','phi_analyt');
     end
     %         if any (any (isnan (H))), break, end  % Unstable, restart
     %         if any (any (isinf (H))), break, end  % Unstable, restart
