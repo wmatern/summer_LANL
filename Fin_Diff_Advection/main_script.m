@@ -8,13 +8,13 @@ kappa = 1/3;              % MUSCL interpolant parameter
 Slope_Mod = 1;            % 1 means on
 BC        = 2;            % 1=reflection, 2=periodic
 ic        = 4;            % 1=zero vel, 2=only u vel, 3=rotating
-SCH       = 0;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
-TVD       = 2;            % 1=minmod, 2=superbee
+SCH       = 1;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
+TVD       = 1;            % 1=minmod, 2=superbee
 
 % Problem Parameters
-nx = 200;                  % grid size
-ny = 200;                  % grid size
-n  = 200;                  % FIX THIS LATER!!!!!!!!!!!!!!
+nx = 100;                  % grid size
+ny = 100;                  % grid size
+n  = 100;                  % FIX THIS LATER!!!!!!!!!!!!!!
 g  = 9.8;                 % gravitational constant
 dt = 0.2;                % hardwired timestep
 dx = 1.0;
@@ -88,11 +88,11 @@ if SCH == 4
         + X(tri(m,3)).*Y(tri(m,1)) - X(tri(m,3)).*Y(tri(m,2))))';
     for m = 1:length(tri)
         if rem(m,2) == 1
-            u = (U(tri(m,3))+U(tri(m,2))+U(tri(m,1))+U(tri(m+1,2)))/4;
-            v = (V(tri(m,3))+V(tri(m,2))+V(tri(m,1))+V(tri(m+1,2)))/4;
+            u = (U(tri(m,3))+U(tri(m,2))+U(tri(m,1)))/3; %+U(tri(m+1,2))
+            v = (V(tri(m,3))+V(tri(m,2))+V(tri(m,1)))/3;
         else
-            u = (U(tri(m,3))+U(tri(m,2))+U(tri(m,1))+U(tri(m-1,1)))/4;
-            v = (V(tri(m,3))+V(tri(m,2))+V(tri(m,1))+V(tri(m-1,1)))/4;
+            u = (U(tri(m,3))+U(tri(m,2))+U(tri(m,1)))/3; %+U(tri(m-1,1))
+            v = (V(tri(m,3))+V(tri(m,2))+V(tri(m,1)))/3;
         end
         uv_mag = sqrt(u^2+v^2);
         Me1(1:3,1:3) = A(m)*[1/6,1/12,1/12;1/12,1/6,1/12;1/12,1/12,1/6];
@@ -159,9 +159,9 @@ if SCH == 4
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 i = 3:n+2; j = 3:n+2;
-plot1(1:length(j)  ,1) = phi(j,34);
-if BC == 2, plot1(length(j)+j-2,1) = phi(j,34); end
-figure(1),plot(plot1,'.-') , title('phi')
+% plot1(1:length(j)  ,1) = phi(j,34);
+% if BC == 2, plot1(length(j)+j-2,1) = phi(j,34); end
+% figure(1),plot(plot1,'.-') , title('phi')
 
 % Main loop
 while nstep < 10000000
