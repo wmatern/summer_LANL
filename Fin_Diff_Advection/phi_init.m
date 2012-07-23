@@ -7,7 +7,9 @@ if 0
 elseif 1
     xnorm = X/nx;
     ynorm = Y/ny;
-    init = (ceil(xnorm-3/12) - ceil(xnorm-4/12)).*(ceil(ynorm-3/12) - ceil(ynorm-4/12));
+    init = (ceil(xnorm-1/12) - ceil(xnorm-2/12)).*(ceil(ynorm-3/12) - ceil(ynorm-4/12));
+    init = init + (ceil(xnorm-1/12) - ceil(xnorm-2/12)).*(ceil(ynorm-5/12) - ceil(ynorm-6/12));
+    init = init + (ceil(xnorm-1/12) - ceil(xnorm-2/12)).*(ceil(ynorm-7/12) - ceil(ynorm-8/12));
 end
 end
 

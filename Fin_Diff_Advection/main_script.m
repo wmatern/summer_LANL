@@ -8,13 +8,13 @@ kappa = 1/3;              % MUSCL interpolant parameter
 Slope_Mod = 1;            % 1 means on
 BC        = 2;            % 1=reflection, 2=periodic
 ic        = 4;            % 1=zero vel, 2=only u vel, 3=rotating
-SCH       = 1;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
+SCH       = 4;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
 TVD       = 1;            % 1=minmod, 2=superbee
 
 % Problem Parameters
-nx = 100;                  % grid size
-ny = 100;                  % grid size
-n  = 100;                  % FIX THIS LATER!!!!!!!!!!!!!!
+nx = 64;                  % grid size
+ny = 64;                  % grid size
+n  = 64;                  % FIX THIS LATER!!!!!!!!!!!!!!
 g  = 9.8;                 % gravitational constant
 dt = 0.2;                % hardwired timestep
 dx = 1.0;
@@ -54,6 +54,12 @@ temp = zeros(nx+4,ny+4);
 temp(3:nx+2,3:ny+2) = reshape(phi,nx,ny);
 phi = temp;
 nstep = 0;
+
+        xp = linspace(0,4200,nx);
+        yp = linspace(0,2100,ny);
+        [X,Y] = meshgrid(xp,yp);
+        figure(2), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi(3:nx+2,3:ny+2));
+        figure(3), imagesc(xp,yp,phi(3:nx+2,3:ny+2)); axis([0,4200,0,2100]); caxis([-.05,1.05]);
 
 if SCH == 4
     U = reshape(U(3:nx+2,3:ny+2),nx*ny,1);
@@ -407,8 +413,17 @@ while nstep < 10000000
     elseif 1
         phi_analyt = phi_init(mod(X-nstep*dt*reshape(U(3:nx+2,3:ny+2),nx*ny,1),nx),mod(Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1),ny),nx,ny); %Note that this only works for constant velocities
         phi_analyt = reshape(phi_analyt,nx,ny);
+        xp = linspace(0,4200,nx);
+        yp = linspace(0,2100,ny);
+        [X,Y] = meshgrid(xp,yp);
         figure(1), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi_analyt);
         figure(2), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi(3:nx+2,3:ny+2));
+        figure(3), imagesc(xp,yp,phi(3:nx+2,3:ny+2)); axis([0,4200,0,2100]); caxis([-.05,1.05]);
+        xp = linspace(0,nx,nx);
+        yp = linspace(0,ny,ny);
+        [X,Y] = meshgrid(xp,yp);
+        X = reshape(X,nx*ny,1);
+        Y = reshape(Y,nx*ny,1);
     end
     
     %         if any (any (isnan (H))), break, end  % Unstable, restart
