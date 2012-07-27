@@ -3,7 +3,7 @@ V = zeros(nx+4,ny+4);
 xnorm = reshape(X,nx,ny)/nx;
 ynorm = reshape(Y,nx,ny)/ny;
 
-V(3:nx+2,3:ny+2) = (2*sqrt((xnorm-.5).^2 + (ynorm-.5).^2)) .* (-(xnorm-.5)./sqrt((xnorm-.5).^2+(ynorm-.5).^2));
+V(3:nx+2,3:ny+2) = (10*sqrt((xnorm-.5).^2 + (ynorm-.5).^2)) .* (-(xnorm-.5)./sqrt((xnorm-.5).^2+(ynorm-.5).^2));
 %V(3:nx+2,3:ny+2) = 0;
 
 V (:,2  ) = V (:,3  );
