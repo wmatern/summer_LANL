@@ -12,9 +12,9 @@ SCH       = 3;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
 TVD       = 2;            % 1=minmod, 2=superbee
 
 % Problem Parameters
-nx = 64;                  % grid size
-ny = 64;                  % grid size
-n  = 64;                  % FIX THIS LATER!!!!!!!!!!!!!!
+nx = 32;                  % grid size
+ny = 32;                  % grid size
+n  = 32;                  % FIX THIS LATER!!!!!!!!!!!!!!
 g  = 0;                 % gravitational constant
 dt = 0.1;                % hardwired timestep
 dx = 1.0;
