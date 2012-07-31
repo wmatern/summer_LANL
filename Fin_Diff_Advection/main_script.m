@@ -12,9 +12,9 @@ SCH       = 3;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
 TVD       = 2;            % 1=minmod, 2=superbee
 
 % Problem Parameters
-nx = 32;                  % grid size
-ny = 32;                  % grid size
-n  = 32;                  % FIX THIS LATER!!!!!!!!!!!!!!
+nx = 512;                  % grid size
+ny = 512;                  % grid size
+n  = 512;                  % FIX THIS LATER!!!!!!!!!!!!!!
 g  = 0;                 % gravitational constant
 dt = 0.1;                % hardwired timestep
 dx = 1.0;
@@ -44,9 +44,22 @@ elseif ic == 3
     U (3:n+2,3:n+2) = sqrt(X.^2./Y.^2); V (3:n+2,3:n+2) = Y./X;
 elseif ic == 4
     H = ones (n+4,n+4); 
-    U = U_init(X,Y,nx,ny); 
+    U = U_init(X,Y,nx,ny);
     V = V_init(X,Y,nx,ny);
-    quiver(reshape(X,nx,ny),reshape(Y,nx,ny),U(3:nx+2,3:ny+2),V(3:nx+2,3:ny+2));
+    phi_analyt = phi_init(X,Y,nx,ny);
+    xp = linspace(0,4200,nx);
+    yp = linspace(0,2100,ny);
+    [X,Y] = meshgrid(xp,yp);
+    figure(1);
+    quiver(X(32:64:nx-1,32:64:ny-1),Y(32:64:nx-1,32:64:ny-1),U(32:64:nx-1,32:64:ny-1),V(32:64:nx-1,32:64:ny-1),.4,'y');
+    hold on;
+    phi_analyt = reshape(phi_analyt,nx,ny);
+    X = reshape(X,nx*ny,1);
+    Y = reshape(Y,nx*ny,1);
+    figure(1), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi_analyt,'EdgeColor', 'none');
+    axis([0,4200,0,2100]);
+    caxis([-.05,1.05]);
+    set(gca,'YDir','reverse');
 end
 
 phi          = phi_init(X,Y,nx,ny);
