@@ -7,51 +7,45 @@ kappa = 1/3;              % MUSCL interpolant parameter
 % Switches
 Slope_Mod = 1;            % 1 means on
 BC        = 2;            % 1=reflection, 2=periodic
-ic        = 4;            % 1=zero vel, 2=only u vel, 3=rotating
-SCH       = 3;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
-TVD       = 2;            % 1=minmod, 2=superbee
+SCH       = 2;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
+TVD       = 1;            % 1=minmod, 2=superbee
+cond      = 4;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
 
 % Problem Parameters
-nx = 512;                  % grid size
-ny = 512;                  % grid size
-n  = 512;                  % FIX THIS LATER!!!!!!!!!!!!!!
-g  = 0;                 % gravitational constant
-dt = 0.1;                % hardwired timestep
+nx = 64;                  % grid size
+ny = 64;                  % grid size
+n  = 64;                  % FIX THIS LATER!!!!!!!!!!!!!!
+g  = 0;                   % gravitational constant
+dt = 0.1;                 % static timestep
 dx = 1.0;
 dy = 1.0;
 Cx = dt/dx;
 Cy = dt/dy;
 
-nplotstep = 8;            % plot interval
+nplotstep = 25;            % plot interval
 
-% Initialize graphics
-% [surfplot,phiplot,heightplot,top] = initgraphics (n,nx,ny);
-
-% Outer loop, restarts.
-
-xp = linspace(0,nx,nx);
-yp = linspace(0,ny,ny);
+% Initialize the grid
+xp    = linspace(0,nx,nx);
+yp    = linspace(0,ny,ny);
 [X,Y] = meshgrid(xp,yp);
-X = reshape(X,nx*ny,1);
-Y = reshape(Y,nx*ny,1);
+X     = reshape(X,nx*ny,1);
+Y     = reshape(Y,nx*ny,1);
 
-if ic == 1
-    H = ones (n+4,n+4); U = zeros (n+4,n+4); V = zeros (n+4,n+4);
-elseif ic == 2
-    H = ones (n+4,n+4); U = ones  (n+4,n+4); V = zeros (n+4,n+4);
-elseif ic == 3
-    H = ones (n+4,n+4); U = ones (n+4,n+4); V = zeros (n+4,n+4);
-    U (3:n+2,3:n+2) = sqrt(X.^2./Y.^2); V (3:n+2,3:n+2) = Y./X;
-elseif ic == 4
-    H = ones (n+4,n+4); 
-    U = U_init(X,Y,nx,ny);
-    V = V_init(X,Y,nx,ny);
+% Initialize the velocities and advected term
+[phi U V] = init_cond(X,Y,nx,ny,cond);
+H = ones(nx+4,ny+4);
+nstep     = 0;
+init_phi = phi;
+
+% Set up the quiver plot for the pacific ocean case
+if cond == 3
     phi_analyt = phi_init(X,Y,nx,ny);
     xp = linspace(0,4200,nx);
     yp = linspace(0,2100,ny);
     [X,Y] = meshgrid(xp,yp);
     figure(1);
-    quiver(X(32:64:nx-1,32:64:ny-1),Y(32:64:nx-1,32:64:ny-1),U(32:64:nx-1,32:64:ny-1),V(32:64:nx-1,32:64:ny-1),.4,'y');
+    quiver(X(32:64:nx-1,32:64:ny-1),Y(32:64:nx-1,32:64:ny-1),...
+        U(32:64:nx-1,32:64:ny-1),V(32:64:nx-1,32:64:ny-1),.4,'y');
     hold on;
     phi_analyt = reshape(phi_analyt,nx,ny);
     X = reshape(X,nx*ny,1);
@@ -62,12 +56,7 @@ elseif ic == 4
     set(gca,'YDir','reverse');
 end
 
-phi          = phi_init(X,Y,nx,ny);
-temp = zeros(nx+4,ny+4);
-temp(3:nx+2,3:ny+2) = reshape(phi,nx,ny);
-phi = temp;
-nstep = 0;
-
+% Initialize the matrix solve for the FEM
 if SCH == 4
     U = reshape(U(3:nx+2,3:ny+2),nx*ny,1);
     V = reshape(V(3:nx+2,3:ny+2),nx*ny,1);
@@ -262,35 +251,37 @@ while nstep < 10000000
             - wminusy(phi(:,:),i,j,numinusy,TVD).*(phi(i  ,j  )-phi(i  ,j-1))...
             + wplusy (phi(:,:),i,j,nuplusy ,TVD).*(phi(i  ,j+1)-phi(i  ,j  ));
     elseif SCH == 2
-        U_halfp (i,j) = (U(i,j+1)./H(i,j+1) + U(i,j  )./H(i,j  ))*Cx/2;
-        U_halfm (i,j) = (U(i,j  )./H(i,j  ) + U(i,j-1)./H(i,j-1))*Cx/2;
-        V_halfp (i,j) = (V(i+1,j)./H(i+1,j) + V(i,j  )./H(i,j  ))*Cy/2;
-        V_halfm (i,j) = (V(i,j  )./H(i,j  ) + V(i-1,j)./H(i-1,j))*Cy/2;
+        U_halfp (i,j) = (U(i+1,j) + U(i  ,j))*Cx/2;
+        U_halfm (i,j) = (U(i  ,j) + U(i-1,j))*Cx/2;
+        V_halfp (i,j) = (V(i,j+1) + V(i,j  ))*Cy/2;
+        V_halfm (i,j) = (V(i,j  ) + V(i,j-1))*Cy/2;
         
-        phi_New (i,j) = phi(i,j) - (MPDATA(phi(i,j  ),phi(i,j+1),V_halfp(i,j))...
-            - MPDATA(phi(i,j-1),phi(i,j  ),V_halfm(i,j)))...
+        phi_New (i,j) = phi(i,j)...
             - (MPDATA(phi(i,j  ),phi(i+1,j),U_halfp(i,j))...
-            - MPDATA(phi(i-1,j),phi(i,j  ),U_halfm(i,j)));
+            -  MPDATA(phi(i-1,j),phi(i  ,j),U_halfm(i,j)))...
+            - (MPDATA(phi(i,j  ),phi(i,j+1),V_halfp(i,j))...
+            -  MPDATA(phi(i,j-1),phi(i,j  ),V_halfm(i,j)));
         
         if BC == 2
-            phi_New = Periodic_BCx(phi_New, nx);
-            phi_New = Periodic_BCy(phi_New, ny);
+            phi_New = Periodic_BCx(phi_New,nx);
+            phi_New = Periodic_BCy(phi_New,ny);
         end
         
-        U_d_p   (i,j) = dt/dx*((abs(U_halfp(i,j))-U_halfp(i,j).^2).*...
-            d_px(i,j  ,phi_New) - U_halfp(i,j).*V_halfp(i,j).*d_py(i,j  ,phi_New));
-        U_d_m   (i,j) = dt/dx*((abs(U_halfm(i,j))-U_halfm(i,j).^2).*...
-            d_px(i,j-1,phi_New) - U_halfm(i,j).*V_halfm(i,j).*d_py(i,j-1,phi_New));
-        V_d_p   (i,j) = dt/dy*((abs(V_halfp(i,j))-V_halfp(i,j).^2).*...
-            d_py(i  ,j,phi_New) - U_halfp(i,j).*V_halfp(i,j).*d_px(i  ,j,phi_New));
-        V_d_m   (i,j) = dt/dy*((abs(V_halfm(i,j))-V_halfm(i,j).^2).*...
-            d_py(i-1,j,phi_New) - U_halfm(i,j).*V_halfm(i,j).*d_px(i-1,j,phi_New));
+        % Calculate the antidiffusive velocity
+        U_d_p   (i,j) = (abs(U_halfp(i,j))-U_halfp(i,j).^2).*...
+            d_px(i  ,j,phi_New) - U_halfp(i,j).*V_halfp(i,j).*d_py(i  ,j,phi_New);
+        U_d_m   (i,j) = (abs(U_halfm(i,j))-U_halfm(i,j).^2).*...
+            d_px(i-1,j,phi_New) - U_halfm(i,j).*V_halfm(i,j).*d_py(i-1,j,phi_New);
+        V_d_p   (i,j) = (abs(V_halfp(i,j))-V_halfp(i,j).^2).*...
+            d_py(i,j  ,phi_New) - U_halfp(i,j).*V_halfp(i,j).*d_px(i,j  ,phi_New);
+        V_d_m   (i,j) = (abs(V_halfm(i,j))-V_halfm(i,j).^2).*...
+            d_py(i,j-1,phi_New) - U_halfm(i,j).*V_halfm(i,j).*d_px(i,j-1,phi_New);
         
         phi (i,j) = phi_New(i,j)...
-            - (MPDATA(phi_New(i,j  ),phi_New(i,j+1),V_d_p(i,j))...
-            -  MPDATA(phi_New(i,j-1),phi_New(i,j  ),V_d_m(i,j)))...
             - (MPDATA(phi_New(i,j  ),phi_New(i+1,j),U_d_p(i,j))...
-            -  MPDATA(phi_New(i-1,j),phi_New(i,j  ),U_d_m(i,j)));
+            -  MPDATA(phi_New(i-1,j),phi_New(i,j  ),U_d_m(i,j)))...
+            - (MPDATA(phi_New(i,j  ),phi_New(i,j+1),V_d_p(i,j))...
+            -  MPDATA(phi_New(i,j-1),phi_New(i,j  ),V_d_m(i,j)));
     elseif SCH == 3
         % phi
         Uxm = (U(i  ,j  )./H(i  ,j  ) + U(i-1,j  )./H(i-1,j  ))/2;
@@ -407,7 +398,8 @@ while nstep < 10000000
     % Update plot
     if 0
         if mod((nstep*dt)*max(max(U)),nx) == 0
-            phi_analyt = phi_init(mod((X-nstep*dt*reshape(U(3:nx+2,3:ny+2),nx*ny,1)),nx),mod((Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1)),ny),nx,ny);
+            phi_analyt = phi_init(mod((X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
+                nx*ny,1)),nx),mod((Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1)),ny),nx,ny);
             phi_analyt = reshape(phi_analyt,nx,ny);
             figure(1),plot(phi(3:nx+2,floor(ny/2)),'.-') , title('phi'), hold on
             plot(phi_analyt,'r');
@@ -418,14 +410,21 @@ while nstep < 10000000
             save(filename,'phi','phi_analyt');
         end
     elseif 1
-        phi_analyt = phi_init(mod(X-nstep*dt*reshape(U(3:nx+2,3:ny+2),nx*ny,1),nx),mod(Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1),ny),nx,ny); %Note that this only works for constant (in space) velocities
-        phi_analyt = reshape(phi_analyt,nx,ny);
-        %figure(1), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi_analyt);
-        figure(2), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi(3:nx+2,3:ny+2));
-        figure(3), imagesc(xp,yp,phi(3:nx+2,3:ny+2)); axis([0,nx,0,ny]); caxis([-.05,1.05]);
+        if mod(nstep,nplotstep) == 0
+%         phi_analyt = phi_init(mod(X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
+%             nx*ny,1),nx),mod(Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1),...
+%             ny),nx,ny); %Note that this only works for constant (in space) velocities
+%         phi_analyt = reshape(phi_analyt,nx,ny);
+%         figure(1), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi_analyt);
+%         figure(2), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi(3:nx+2,3:ny+2));
+%         figure(3), imagesc(xp,yp,phi(3:nx+2,3:ny+2)); axis([0,nx,0,ny]); caxis([-.05,1.05]);
+        figure(4), plot(phi(nx/2,:)), hold on, plot(init_phi(nx/2,:)), hold off, axis([1 ny 0 1.1])
+%         figure(4), plot(phi(nx/2,:)), axis([1 ny 0 1.1])
+        end
     end
     
     %         if any (any (isnan (H))), break, end  % Unstable, restart
     %         if any (any (isinf (H))), break, end  % Unstable, restart
     %         if nstep>80, break, end
+%     if nstep == (ny)/dt*dy, break, end
 end

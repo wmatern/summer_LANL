@@ -1,5 +1,5 @@
 function f = d_px(j,i,R)
-order = 2;
+order = 1;
 if order == 1
 % First Order in the x direction
     f = (R(j,i+1)-R(j,i  ))./(R(j,i+1)+R(j,i  )+eps);
