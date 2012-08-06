@@ -27,7 +27,7 @@ Cy = dt/dy;
 % Initialize the grid
 xp    = linspace(0,nx,nx);
 yp    = linspace(0,ny,ny);
-[X,Y] = meshgrid(xp,yp);
+[Y,X] = meshgrid(yp,xp);
 X     = reshape(X,nx*ny,1);
 Y     = reshape(Y,nx*ny,1);
 
@@ -42,14 +42,12 @@ if cond == 3
     phi_analyt = phi_init(X,Y,nx,ny);
     xp = linspace(0,4200,nx);
     yp = linspace(0,2100,ny);
-    [X,Y] = meshgrid(xp,yp);
+    [Y,X] = meshgrid(yp,xp);
     figure(1);
     quiver(X(32:64:nx-1,32:64:ny-1),Y(32:64:nx-1,32:64:ny-1),...
         U(32:64:nx-1,32:64:ny-1),V(32:64:nx-1,32:64:ny-1),.4,'y');
     hold on;
     phi_analyt = reshape(phi_analyt,nx,ny);
-    X = reshape(X,nx*ny,1);
-    Y = reshape(Y,nx*ny,1);
     figure(1), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi_analyt,'EdgeColor', 'none');
     axis([0,4200,0,2100]);
     caxis([-.05,1.05]);
@@ -58,6 +56,8 @@ end
 
 % Initialize the matrix solve for the FEM
 if SCH == 4
+    X = reshape(X,nx*ny,1);
+    Y = reshape(Y,nx*ny,1);
     U = reshape(U(3:nx+2,3:ny+2),nx*ny,1);
     V = reshape(V(3:nx+2,3:ny+2),nx*ny,1);
     a = 1;
@@ -110,20 +110,20 @@ if SCH == 4
         M(tri(m,2),tri(m,:)) = M(tri(m,2),tri(m,:)) + Me1(2,:) + Me2(2,:) + Me3(2,:);
         M(tri(m,3),tri(m,:)) = M(tri(m,3),tri(m,:)) + Me1(3,:) + Me2(3,:) + Me3(3,:);
         Ke2r1(1,1:3) = ((u/6) + (u*a*h(m)/(8*A(m))) * ((u/uv_mag)*(Y(tri(m,2))-...
-            Y(tri(m,3))) + (v/uv_mag)*(X(tri(m,3))-X(tri(m,2))))) * [Y(tri(m,2))...
-            -Y(tri(m,3)), Y(tri(m,3))-Y(tri(m,1)), Y(tri(m,1))-Y(tri(m,2))]...
+            Y(tri(m,3))) + (v/uv_mag)*(X(tri(m,3))-X(tri(m,2))))) * [Y(tri(m,2))-...
+            Y(tri(m,3)), Y(tri(m,3))-Y(tri(m,1)), Y(tri(m,1))-Y(tri(m,2))]...
             + ((v/6) + (v*a*h(m)/(8*A(m))) * ((u/uv_mag)*(Y(tri(m,2))-Y(tri(m,3)))...
             + (v/uv_mag)*(X(tri(m,3))-X(tri(m,2))))) * [X(tri(m,3))-X(tri(m,2)),...
             X(tri(m,1))-X(tri(m,3)), X(tri(m,2))-X(tri(m,1))];
         Ke2r2(1,1:3) = ((u/6) + (u*a*h(m)/(8*A(m))) * ((u/uv_mag)*(Y(tri(m,3))...
-            -Y(tri(m,1))) + (v/uv_mag)*(X(tri(m,1))-X(tri(m,3))))) * [Y(tri(m,2))...
-            -Y(tri(m,3)), Y(tri(m,3))-Y(tri(m,1)), Y(tri(m,1))-Y(tri(m,2))]...
+            -Y(tri(m,1))) + (v/uv_mag)*(X(tri(m,1))-X(tri(m,3))))) * [Y(tri(m,2))-...
+            Y(tri(m,3)), Y(tri(m,3))-Y(tri(m,1)), Y(tri(m,1))-Y(tri(m,2))]...
             + ((v/6) + (v*a*h(m)/(8*A(m))) * ((u/uv_mag)*(Y(tri(m,3))-Y(tri(m,1)))...
             + (v/uv_mag)*(X(tri(m,1))-X(tri(m,3))))) * [X(tri(m,3))-X(tri(m,2)),...
             X(tri(m,1))-X(tri(m,3)), X(tri(m,2))-X(tri(m,1))];
         Ke2r3(1,1:3) = ((u/6) + (u*a*h(m)/(8*A(m))) * ((u/uv_mag)*(Y(tri(m,1))...
-            -Y(tri(m,2))) + (v/uv_mag)*(X(tri(m,2))-X(tri(m,1))))) * [Y(tri(m,2))...
-            -Y(tri(m,3)), Y(tri(m,3))-Y(tri(m,1)), Y(tri(m,1))-Y(tri(m,2))]...
+            -Y(tri(m,2))) + (v/uv_mag)*(X(tri(m,2))-X(tri(m,1))))) * [Y(tri(m,2))-...
+            Y(tri(m,3)), Y(tri(m,3))-Y(tri(m,1)), Y(tri(m,1))-Y(tri(m,2))]...
             + ((v/6) + (v*a*h(m)/(8*A(m))) * ((u/uv_mag)*(Y(tri(m,1))-Y(tri(m,2)))...
             + (v/uv_mag)*(X(tri(m,2))-X(tri(m,1))))) * [X(tri(m,3))-X(tri(m,2)),...
             X(tri(m,1))-X(tri(m,3)), X(tri(m,2))-X(tri(m,1))];
@@ -170,6 +170,9 @@ if SCH == 4
     temp = zeros(nx+4,ny+4);
     temp(i,j) = V(i-2,j-2);
     V = temp;
+    
+    X = reshape(X,nx,ny);
+    Y = reshape(Y,nx,ny);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 i = 3:n+2; j = 3:n+2;
@@ -422,20 +425,20 @@ while nstep < 10000000
         phi = temp;
     end
     % Update plot
-    if 0
-        if mod((nstep*dt)*max(max(U)),nx) == 0
+    if 1
+        if mod((nstep*dt)*max(max(V)),ny) == 0
             phi_analyt = phi_init(mod((X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
                 nx*ny,1)),nx),mod((Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1)),ny),nx,ny);
             phi_analyt = reshape(phi_analyt,nx,ny);
-            figure(1),plot(phi(3:nx+2,floor(ny/2)),'.-') , title('phi'), hold on
-            plot(phi_analyt,'r');
-            legend('FEM','Analytical');
+            figure(1),plot(phi(floor(nx/2+2),3:ny+2),'.-') , title('phi'), hold on
+            plot(phi_analyt(floor(nx/2),1:ny),'r');
+            legend('MPDATA','Analytical');
             hold off
             drawnow;
-            filename = ['FEM_',num2str((nstep*dt)*max(max(U))/nx),'.dat'];
+            filename = ['MPDATA_',num2str((nstep*dt)*max(max(V))/nx),'.dat'];
             save(filename,'phi','phi_analyt');
         end
-    elseif 1
+    elseif 0
         if mod(nstep,nplotstep) == 0
 %         phi_analyt = phi_init(mod(X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
 %             nx*ny,1),nx),mod(Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1),...

@@ -38,9 +38,10 @@ for i = [1,5,10]
     saveas(h,[type,'_',num2str(i),'.png']);
 end
 close 1 5 10
+%%
 for i = [1,5,10]
     type = 'MPDATA';
-    S = load([type,'_',num2str(i),'.dat'],'-mat');
+    S = load([type,num2str(i),'.dat'],'-mat');
     phi = S.phi(3:end-2,3:end-2);
     phi_analyt = S.phi_analyt;
     clear S;
@@ -51,6 +52,7 @@ for i = [1,5,10]
     saveas(h,[type,'_',num2str(i),'.png']);
 end
 close 1 5 10
+%%
 for i = [1,5,10]
     type = 'MUSCL';
     S = load([type,'_',num2str(i),'.dat'],'-mat');

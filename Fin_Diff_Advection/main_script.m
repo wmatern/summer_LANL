@@ -9,7 +9,7 @@ Slope_Mod = 1;            % 1 means on
 BC        = 2;            % 1=reflection, 2=periodic
 SCH       = 2;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
 TVD       = 1;            % 1=minmod, 2=superbee
-cond      = 4;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
+cond      = 2;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
 
 % Problem Parameters
 nx = 64;                  % grid size
@@ -396,20 +396,20 @@ while nstep < 10000000
         phi = temp;
     end
     % Update plot
-    if 0
-        if mod((nstep*dt)*max(max(U)),nx) == 0
+    if 1
+        if mod((nstep*dt)*max(max(V)),ny) == 0
             phi_analyt = phi_init(mod((X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
                 nx*ny,1)),nx),mod((Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1)),ny),nx,ny);
             phi_analyt = reshape(phi_analyt,nx,ny);
-            figure(1),plot(phi(3:nx+2,floor(ny/2)),'.-') , title('phi'), hold on
+            figure(1),plot(phi(floor(nx/2),3:ny+2),'.-') , title('phi'), hold on
             plot(phi_analyt,'r');
-            legend('FEM','Analytical');
+            legend('MPDATA','Analytical');
             hold off
             drawnow;
-            filename = ['FEM_',num2str((nstep*dt)*max(max(U))/nx),'.dat'];
+            filename = ['MPDATA_',num2str((nstep*dt)*max(max(U))/nx),'.dat'];
             save(filename,'phi','phi_analyt');
         end
-    elseif 1
+    elseif 0
         if mod(nstep,nplotstep) == 0
 %         phi_analyt = phi_init(mod(X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
 %             nx*ny,1),nx),mod(Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1),...
@@ -418,7 +418,7 @@ while nstep < 10000000
 %         figure(1), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi_analyt);
 %         figure(2), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi(3:nx+2,3:ny+2));
 %         figure(3), imagesc(xp,yp,phi(3:nx+2,3:ny+2)); axis([0,nx,0,ny]); caxis([-.05,1.05]);
-        figure(4), plot(phi(nx/2,:)), hold on, plot(init_phi(nx/2,:)), hold off, axis([1 ny 0 1.1])
+           figure(4), plot(phi(nx/2,:)), hold on, plot(init_phi(nx/2,:)), hold off, axis([1 ny 0 1.1])
 %         figure(4), plot(phi(nx/2,:)), axis([1 ny 0 1.1])
         end
     end

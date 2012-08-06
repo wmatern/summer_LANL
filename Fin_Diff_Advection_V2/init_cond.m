@@ -8,10 +8,10 @@ if cond == 1
     U  = ones (nx+4,ny+4);
     V  = zeros(nx+4,ny+4);
 elseif cond == 2
-    xnorm = X/nx;
-    phi = ceil(xnorm-1/12) - ceil(xnorm-3/12);
-    phi = phi + ((xnorm-5/12)/(1/12) - ceil(xnorm-6/12).*(2*(xnorm - 6/12)/(1/12))).*(ceil(xnorm-5/12) - ceil(xnorm-7/12));
-    phi = phi + exp(-(150*(xnorm-10/12).^2));
+    ynorm = Y/ny;
+    phi = ceil(ynorm-1/12) - ceil(ynorm-3/12);
+    phi = phi + ((ynorm-5/12)/(1/12) - ceil(ynorm-6/12).*(2*(ynorm - 6/12)/(1/12))).*(ceil(ynorm-5/12) - ceil(ynorm-7/12));
+    phi = phi + exp(-(150*(ynorm-10/12).^2));
     
     V  = ones (nx+4,ny+4);
     U  = zeros(nx+4,ny+4);
