@@ -1,6 +1,40 @@
 \documentclass{article}
+\usepackage{fullpage}
+\usepackage{cite}
+
 \begin{document}
-\title{Tracking contact discontinuities numerically}
-\author{Will Matern \and Sean Davis}
+\title{Numerically Tracking Contact Discontinuities}
+\author{Sean Davis \and Will Matern}
 \maketitle
+
+\begin{abstract}
+We review some of the classic numerical techniques used to analyze contact discontinuities and compare their effectiveness. Several finite difference methods (the Lax-Wendroff method, a Multidimensional Positive Definite Advection Transport Algorithm (MPDATA) method and a MUSCL scheme with an Artificial Compression Method (ACM)) as well as the finite element Streamlined Upwind Petrov-Galerkin (SUPG) method were considered. These methods were applied to solve the 2D advection equation. Based on our results we concluded that the MUSCL scheme produces the sharpest interfaces but can inappropriately steepen the solution. The SUPG method seems to represent a good balance between stability and interface sharpness without any inappropriate steepening. However for solutions with discontinuities the MUSCL scheme is superior. Several of these methods were also used to solve the Sod shock tube problem. In addition a preliminary implementation in a GPU program (CLAMR) is discussed.
+\end{abstract}
+
+\section{Introduction}
+\label{intro}
+
+The earthquake and resulting tsunami in Japan caused a release of radioactive material into the pacific ocean. This radioactive waste was carried by the Kuroshio current into the North Pacific current and is making its way to the US coastline. These currents can produce sharp flow discontinuities with the surrounding ocean water. The idea of tracking these flows and accurately resolving the  interfaces between the radioactive and non radioactive fluids provides a motivation for resolving contact discontinuities.
+
+Many classic techniques have been developed to analyze contact discontinuities and compare their effectiveness. Several finite difference methods (the Lax-Wendroff method, a Multidimensional Positive Definite Advection Transport Algorithm (MPDATA) method and a Monotone Upwind Scheme for Conservation Laws (MUSCL) with an Artificial Compression Method (ACM)) as well as the finite element Streamlined Upwind Petrov-Galerkin (SUPG) method are considered. These methods were applied to solve the 2D advection equation. Based on these results we were able to conclude that the MUSCL scheme with artificial compression produces the sharpest interfaces but can inappropriately steepen the solution. The SUPG method seems to represent a good balance between stability and interface sharpness without any inappropriate steepening but is a non-conservative method. However, for solutions with discontinuities, the MUSCL scheme is superior. Some of the finite difference methods and a combined finite element/finite difference method (based on the Lax-Wendroff and SUPG method) were also used to solve the Euler equations. Each of these methods is detailed in Section \ref{methods} followed by a brief description of the results from the different methods in Section \ref{results}. We then discuss the conclusions and future directions we hope to take with the research in Section \ref{conclusions}.
+
+\section{Discription of Methods}
+\label{methods}
+\subsection{Lax-Wendroff}
+\subsection{TVD}
+\subsection{MPDATA}
+\subsection{MUSCL with ACM}
+\subsection{SUPG}
+
+\section{Results}
+\label{results}
+
+\section{Conclusions and Future Directions}
+\label{conclusions}
+
+\section{Acknowledgements}
+
+\bibliographystyle{plain}
+\bibliography{mybib}
+
 \end{document}
