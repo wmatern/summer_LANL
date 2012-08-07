@@ -1,1 +1,6 @@
+\documentclass{article}
+\begin{document}
+\begin{abstract}
 In this discussion we will review some classic numerical techniques used to analyze contact discontinuities and compare their effectiveness. Several finite difference methods (the Lax-Wendroff method, a Multidimensional Positive Definite Advection Transport Algorithm (MPDATA) method and a MUSCL scheme with an Artificial Compression Method (ACM)) as well as the finite element Streamlined Upwind Petrov-Galerkin (SUPG) method were considered. These methods were applied to solve the 2D advection equation. Based on our results we concluded that the MUSCL scheme produces the sharpest interfaces but can inappropriately steepen the solution. The MPDATA scheme suffers from significant numerical diffusion. The SUPG method seems to represent a good balance between stability and interface sharpness without any inappropriate steepening. However for solutions with discontinuities the MUSCL scheme is superior. Several of these methods were also used to solve the Sod shock tube problem. In addition a preliminary implementation in a GPU program (CLAMR) is discussed.
+\end{abstract}
+\end{document}
