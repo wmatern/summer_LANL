@@ -1,2 +1,15 @@
 \subsection{MPDATA}
 \label{MPDATA}
+
+Developed by Smolarkiewicz beginning in the early 1980s \cite{Smol84,Smol90,Smol06}, the MPDATA algorithm is a finite-difference approximation for the advective terms in the fluid equations. A donor-cell approximation to the equation is defined in terms of the local Courant number. The resulting equation is a first order upwind finite difference scheme, which is very diffusive.
+
+By analyzing the approximation from the first step using a modified equation analysis, it can be seen that a diffusive convective flux term is added to the model equation. This erroneous diffusion damps out nonphysical oscillations but also overly smears the solution over time.
+
+As an example, the pure advection equation,\[
+\frac{\partial \Psi}{\partial t} = -\frac{\partial}{\partial x}(u\Psi)
+\]
+becomes,
+\[
+\frac{\partial \Psi}{\partial t} = -\frac{\partial}{\partial x}(u\Psi)-\frac{\partial}{\partial x}\left(-K\frac{\partial \Psi}{\partial x}\right)
+\]
+using an upstream approximation. The added dissipation error, $\frac{\partial}{\partial x}\left(K\frac{\partial \Psi}{\partial x}\right)$, is then subtracted out of the solution using an antidiffusive velocity to cancel the additional convective flux. 

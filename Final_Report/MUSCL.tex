@@ -1,2 +1,6 @@
 \subsection{MUSCL with ACM}
 \label{MUSCL}
+
+The MUSCL that we used is a modified Osher-Chakravarthy scheme \cite{Osher}, which is a second order TVD approximation to the scalar conservation laws. The modifications produce a third order accurate MUSCL solver \cite{Lin}. The method is upwind biased and uses a minmod function to avoid numerical oscillations in the solution.
+
+Harten’s ACM \cite{Harten} was initially intended to be used to sharpen contact discontinuities for first order accurate schemes. However, this technique has been extended to higher order methods such as Essentially Non-Oscillatory (ENO) schemes \cite{Yang}, MUSCL \cite{Lin} and RAGE \cite{Gittings}, which is widely used at LANL. This slope modification method relies on a switch to increase or decrease the slope of a function near a discontinuity. For the purposes of this presentation, the advection equation is solved using a MUSCL scheme with ACM.

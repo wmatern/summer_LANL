@@ -1,6 +1,6 @@
 clear all; clc; close all
 
-nplotstep = 1;            % plot interval
+nplotstep = 2;            % plot interval
 
 % Model Parameters
 a     = 2;                % slope modification constant 1.9<a<2.3
@@ -9,14 +9,20 @@ kappa = 1/3;              % MUSCL interpolant parameter
 % Switches
 Slope_Mod = 1;            % 1 means on
 BC        = 2;            % 1=reflection, 2=periodic
-SCH       = 2;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
-TVD       = 1;            % 1=minmod, 2=superbee
+SCH       = 1;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
+TVD       = 2;            % 1=minmod, 2=superbee
 cond      = 2;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
+makemovie     = 1;            % 1=movie
+if makemovie
+    writerObj = VideoWriter('Lax_movie.avi');
+    open(writerObj);
+    wrtierObj.FrameRate = 60;
+end
 
 % Problem Parameters
-nx = 64;                  % grid size
-ny = 64;                  % grid size
-n  = 64;                  % FIX THIS LATER!!!!!!!!!!!!!!
+nx = 150;                  % grid size
+ny = 150;                  % grid size
+n  = 150;                  % FIX THIS LATER!!!!!!!!!!!!!!
 g  = 0;                   % gravitational constant
 dt = 0.1;                 % static timestep
 dx = 1.0;
@@ -56,8 +62,6 @@ end
 
 % Initialize the matrix solve for the FEM
 if SCH == 4
-    X = reshape(X,nx*ny,1);
-    Y = reshape(Y,nx*ny,1);
     U = reshape(U(3:nx+2,3:ny+2),nx*ny,1);
     V = reshape(V(3:nx+2,3:ny+2),nx*ny,1);
     a = 1;
@@ -170,9 +174,6 @@ if SCH == 4
     temp = zeros(nx+4,ny+4);
     temp(i,j) = V(i-2,j-2);
     V = temp;
-    
-    X = reshape(X,nx,ny);
-    Y = reshape(Y,nx,ny);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 i = 3:n+2; j = 3:n+2;
@@ -181,7 +182,7 @@ i = 3:n+2; j = 3:n+2;
 % figure(1),plot(plot1,'.-') , title('phi')
 
 % Main loop
-while nstep < 10000000
+while nstep < 1000
     nstep = nstep + 1;
     
     if BC == 1 % Boundary condition switch
@@ -261,10 +262,10 @@ while nstep < 10000000
             + Ux (i-1,j-1)./Hx(i-1,j-1)) .* (phix(i,j-1)-phix(i-1,j-1))...
             - (dt/(2*dy))*(Vy (i-1,j)./Hy(i-1,j)...
             + Vy (i-1,j-1)./Hy(i-1,j-1)) .* (phiy(i-1,j)-phiy(i-1,j-1))...
-            - wminusx(phi(:,:),i,j,numinusx,TVD).*(phi(i  ,j  )-phi(i-1,j  ))...
-            + wplusx (phi(:,:),i,j,nuplusx ,TVD).*(phi(i+1,j  )-phi(i  ,j  ))...
-            - wminusy(phi(:,:),i,j,numinusy,TVD).*(phi(i  ,j  )-phi(i  ,j-1))...
-            + wplusy (phi(:,:),i,j,nuplusy ,TVD).*(phi(i  ,j+1)-phi(i  ,j  ));
+            - wminusx(phi(:,:),U,V,i,j,numinusx,TVD).*(phi(i  ,j  )-phi(i-1,j  ))...
+            + wplusx (phi(:,:),U,V,i,j,nuplusx ,TVD).*(phi(i+1,j  )-phi(i  ,j  ))...
+            - wminusy(phi(:,:),U,V,i,j,numinusy,TVD).*(phi(i  ,j  )-phi(i  ,j-1))...
+            + wplusy (phi(:,:),U,V,i,j,nuplusy ,TVD).*(phi(i  ,j+1)-phi(i  ,j  ));
     elseif SCH == 2
         U_halfp (i,j) = (U(i+1,j) + U(i  ,j))*Cx/2;
         U_halfm (i,j) = (U(i  ,j) + U(i-1,j))*Cx/2;
@@ -442,21 +443,26 @@ while nstep < 10000000
         end
     elseif 1
         if mod(nstep,nplotstep) == 0
-%         phi_analyt = phi_init(mod(X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
-%             nx*ny,1),nx),mod(Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1),...
-%             ny),nx,ny); %Note that this only works for constant (in space) velocities
-%         phi_analyt = reshape(phi_analyt,nx,ny);
-%         figure(1), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi_analyt);
-%         figure(2), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi(3:nx+2,3:ny+2));
-%         figure(3), imagesc(xp,yp,phi(3:nx+2,3:ny+2)); axis([0,nx,0,ny]); caxis([-.05,1.05]);
-%         figure(4), plot(phi(nx/2,:)), hold on, plot(init_phi(nx/2,:))
-%                 hold off, axis([1 ny 0 1.1])
-        figure(4), plot(phi(nx/2,:)), axis([1 ny 0 1.1]), pause(.1)
+            phi_analyt = phi_init(mod(X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
+                nx*ny,1),nx),mod(Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1),...
+                ny),nx,ny); %Note that this only works for constant (in space) velocities
+            phi_analyt = reshape(phi_analyt,nx,ny);
+            %         figure(1), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi_analyt);
+            %         figure(2), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi(3:nx+2,3:ny+2));
+            %         figure(3), imagesc(xp,yp,phi(3:nx+2,3:ny+2)); axis([0,nx,0,ny]); caxis([-.05,1.05]);
+            figure(4); plot(phi(nx/2,3:ny+2),'.'), hold on, plot(phi_analyt(nx/2,:),'r')
+            hold off, axis([1 ny 0 1.1])
+            %        figure(4), plot(phi(nx/2,:),'.') axis([1 ny 0 1.1]), pause(.1)
+            if makemovie
+                frame = getframe;
+                writeVideo(writerObj,frame);
+            end
         end
     end
     
     %         if any (any (isnan (H))), break, end  % Unstable, restart
     %         if any (any (isinf (H))), break, end  % Unstable, restart
     %         if nstep>80, break, end
-%     if nstep == (ny)/dt*dy, break, end
+    %     if nstep == (ny)/dt*dy, break, end
 end
+close(writerObj);
