@@ -1,6 +1,6 @@
 clear all; clc; close all
 
-nplotstep = 2;            % plot interval
+nplotstep = 20;            % plot interval
 
 % Model Parameters
 a     = 2;                % slope modification constant 1.9<a<2.3
@@ -9,10 +9,10 @@ kappa = 1/3;              % MUSCL interpolant parameter
 % Switches
 Slope_Mod = 1;            % 1 means on
 BC        = 2;            % 1=reflection, 2=periodic
-SCH       = 1;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
+SCH       = 4;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
 TVD       = 2;            % 1=minmod, 2=superbee
 cond      = 2;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
-makemovie     = 1;            % 1=movie
+makemovie     = 0;            % 1=movie
 if makemovie
     writerObj = VideoWriter('Lax_movie.avi');
     open(writerObj);
@@ -20,9 +20,9 @@ if makemovie
 end
 
 % Problem Parameters
-nx = 150;                  % grid size
-ny = 150;                  % grid size
-n  = 150;                  % FIX THIS LATER!!!!!!!!!!!!!!
+nx = 64;                  % grid size
+ny = 64;                  % grid size
+n  = 64;                  % FIX THIS LATER!!!!!!!!!!!!!!
 g  = 0;                   % gravitational constant
 dt = 0.1;                 % static timestep
 dx = 1.0;
@@ -88,7 +88,7 @@ if SCH == 4
     Me1 = zeros(3,3);
     Me2 = zeros(3,3);
     Me3 = zeros(3,3);
-    h(m) = .707*nx/(nx-1);
+    h(m) = .707;
     A(m) = abs(.5*(X(tri(m,1)).*Y(tri(m,2)) - X(tri(m,1)).*Y(tri(m,3))...
         + X(tri(m,2)).*Y(tri(m,3)) - X(tri(m,2)).*Y(tri(m,1))...
         + X(tri(m,3)).*Y(tri(m,1)) - X(tri(m,3)).*Y(tri(m,2))))';
@@ -182,7 +182,7 @@ i = 3:n+2; j = 3:n+2;
 % figure(1),plot(plot1,'.-') , title('phi')
 
 % Main loop
-while nstep < 1000
+while nstep < 10000
     nstep = nstep + 1;
     
     if BC == 1 % Boundary condition switch
@@ -465,4 +465,6 @@ while nstep < 1000
     %         if nstep>80, break, end
     %     if nstep == (ny)/dt*dy, break, end
 end
-close(writerObj);
+if makemovie
+    close(writerObj);
+end
