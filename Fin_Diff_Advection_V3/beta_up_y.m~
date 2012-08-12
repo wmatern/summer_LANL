@@ -1,0 +1,9 @@
+function b = beta_up_y(p,p_new,v,i,j,dt,dx)
+
+b = (psi_max(p,i,j,p_new)-p_new(i,j))./(dt/dx*(v(i,j-1)+p_new(i,j-1)
+end
+
+function p = psi_max(p,i,j)
+p = max(max(max(p(i,j-1),p(i,j+1)),p(i,j)),...
+    max(max(p_new(i,j-1),p_new(i,j+1)),p_new(i,j)));
+end
