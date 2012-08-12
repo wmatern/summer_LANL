@@ -1,6 +1,6 @@
 clear all; clc; close all
 
-nplotstep = 8;            % plot interval
+nplotstep = 1;            % plot interval
 
 % Model Parameters
 a     = 2;                % slope modification constant 1.9<a<2.3
@@ -12,7 +12,7 @@ BC        = 2;            % 1=reflection, 2=periodic
 SCH       = 2;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
 TVD       = 2;            % 1=minmod, 2=superbee
 cond      = 2;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
-makemovie = 0;            % 1=movie
+makemovie = 1;            % 1=movie
 if makemovie
     writerObj = VideoWriter('Lax_movie.avi');
     writerObj.FrameRate = 15;
@@ -25,7 +25,7 @@ nx = 64;                  % grid size
 ny = 64;                  % grid size
 n  = 64;                  % FIX THIS LATER!!!!!!!!!!!!!!
 g  = 0;                   % gravitational constant
-dt = 0.1;             % static timestep
+dt = 1;             % static timestep
 dx = 1.0;
 dy = 1.0;
 Cx = dt/dx;
@@ -183,7 +183,7 @@ i = 3:n+2; j = 3:n+2;
 % figure(1),plot(plot1,'.-') , title('phi')
 
 % Main loop
-while nstep < 6400
+while nstep < 640
     nstep = nstep + 1;
     
     if BC == 1 % Boundary condition switch
