@@ -9,9 +9,9 @@ kappa = 1/3;              % MUSCL interpolant parameter
 % Switches
 Slope_Mod = 1;            % 1 means on
 BC        = 2;            % 1=reflection, 2=periodic
-SCH       = 1;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
+SCH       = 2;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
 TVD       = 2;            % 1=minmod, 2=superbee
-cond      = 2;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
+cond      = 4;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
 
 % Problem Parameters
 nx = 64;                  % x grid size
@@ -302,14 +302,14 @@ while nstep < 10000000
             V_d_m = Periodic_BCy(V_d_m,ny);
         end
         % FCT
-%         V_d_p(i,j) = min(1,min(beta_dn_y(phi,phi_New,V_d_p,i,j,dt,dy),...
-%             beta_up_y(phi,phi_New,V_d_p,i,j+1,dt,dx))).*my_plus(V_d_p(i,j))+...
-%                      min(1,min(beta_up_y(phi,phi_New,V_d_p,i,j,dt,dy),...
-%             beta_dn_y(phi,phi_New,V_d_p,i,j+1,dt,dx))).*my_minus(V_d_p(i,j));
-%         V_d_m(i,j) = min(1,min(beta_dn_y(phi,phi_New,V_d_m,i,j-1,dt,dy),...
-%             beta_up_y(phi,phi_New,V_d_m,i,j,dt,dx))).*my_plus(V_d_m(i,j))+...
-%                      min(1,min(beta_up_y(phi,phi_New,V_d_m,i,j-1,dt,dy),...
-%             beta_dn_y(phi,phi_New,V_d_m,i,j,dt,dx))).*my_minus(V_d_m(i,j));
+        V_d_p(i,j) = min(1,min(beta_dn_y(phi,phi_New,V_d_p,i,j,dt,dy),...
+            beta_up_y(phi,phi_New,V_d_p,i,j+1,dt,dx))).*my_plus(V_d_p(i,j))+...
+                     min(1,min(beta_up_y(phi,phi_New,V_d_p,i,j,dt,dy),...
+            beta_dn_y(phi,phi_New,V_d_p,i,j+1,dt,dx))).*my_minus(V_d_p(i,j));
+        V_d_m(i,j) = min(1,min(beta_dn_y(phi,phi_New,V_d_m,i,j-1,dt,dy),...
+            beta_up_y(phi,phi_New,V_d_m,i,j,dt,dx))).*my_plus(V_d_m(i,j))+...
+                     min(1,min(beta_up_y(phi,phi_New,V_d_m,i,j-1,dt,dy),...
+            beta_dn_y(phi,phi_New,V_d_m,i,j,dt,dx))).*my_minus(V_d_m(i,j));
         
         if BC == 2
             V_d_p = Periodic_BCx(V_d_p,nx);
@@ -454,21 +454,23 @@ while nstep < 10000000
             if nstep*dt*max(max(V))/ny == 10, break, end
         end
     else
-        if nstep*dt*max(max(V))/ny == 1 || nstep*dt*max(max(V))/ny == 5 ...
-                 || nstep*dt*max(max(V))/ny == 10
-%         if mod(nstep,nplotstep) == 1
-%         phi_analyt = phi_init(mod(X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
-%             nx*ny,1),nx),mod(Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1),...
-%             ny),nx,ny); %Note that this only works for constant (in space) velocities
-%         phi_analyt = reshape(phi_analyt,nx,ny);
-%         figure(1), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi_analyt);
-%         figure(2), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi(3:nx+2,3:ny+2));
-%         figure(3), imagesc(xp,yp,phi(3:nx+2,3:ny+2)); axis([0,nx,0,ny]); caxis([-.05,1.05]);
-%         figure(4), plot(phi(nx/2,:)), hold on, plot(init_phi(nx/2,:))
-%                 hold off, axis([1 ny 0 1.1])
-        figure(nstep*dt*max(max(V))/ny), plot(phi(nx/2,:)), axis([1 ny 0 1.1])%, pause(.1)
-        if nstep*dt*max(max(V))/ny == 10, break, end
-        end
+%         if nstep*dt*max(max(V))/ny == 1 || nstep*dt*max(max(V))/ny == 5 ...
+%                  || nstep*dt*max(max(V))/ny == 10
+% %         if mod(nstep,nplotstep) == 1
+% %         phi_analyt = phi_init(mod(X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
+% %             nx*ny,1),nx),mod(Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1),...
+% %             ny),nx,ny); %Note that this only works for constant (in space) velocities
+% %         phi_analyt = reshape(phi_analyt,nx,ny);
+% %         figure(1), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi_analyt);
+% %         figure(2), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi(3:nx+2,3:ny+2));
+% %         figure(3), imagesc(xp,yp,phi(3:nx+2,3:ny+2)); axis([0,nx,0,ny]); caxis([-.05,1.05]);
+% %         figure(4), plot(phi(nx/2,:)), hold on, plot(init_phi(nx/2,:))
+% %                 hold off, axis([1 ny 0 1.1])
+%         figure(nstep*dt*max(max(V))/ny), plot(phi(nx/2,:)), axis([1 ny 0 1.1])%, pause(.1)
+%         if nstep*dt*max(max(V))/ny == 10, break, end
+%         end
+        figure(1), plot(phi(nx/2,:)), axis([1 ny 0 1.1])%, pause(.1)
+
     end
     
     %         if any (any (isnan (H))), break, end  % Unstable, restart
