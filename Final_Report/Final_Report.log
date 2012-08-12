@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  9 AUG 2012 11:42
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  10 AUG 2012 17:01
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -63,8 +63,8 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <8> on input line 8.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <6> on input line 8.
- (./Abstract.tex) (./Introduction.tex) (./Methods.tex
-(./Lax.tex [1
+ (./Abstract.tex) (./Introduction.tex (./GPU.tex))
+(./Methods.tex (./Lax.tex [1
 
 {/usr/local/texlive/2010/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]) (./MPD
 ATA.tex
@@ -74,31 +74,34 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <5> on input line 9.
 ) (./MUSCL.tex
 Missing character: There is no Õ in font cmr10!
-) (./SUPG.tex [2])) (./Results.tex)
-(./Conclusions.tex) (./Acknowledgements.tex) (./Final_Report.bbl [3]) [4]
-(./Final_Report.aux) ) 
+) (./SUPG.tex [2]))
+(./Results.tex) (./Conclusions.tex) (./Acknowledgements.tex)
+(./Final_Report.bbl [3]) [4] (./Final_Report.aux)
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ ) 
 Here is how much of TeX's memory you used:
- 402 strings out of 493747
- 4642 string characters out of 3143546
+ 406 strings out of 493747
+ 4666 string characters out of 3143546
  56070 words of memory out of 3000000
- 3726 multiletter control sequences out of 15000+200000
+ 3727 multiletter control sequences out of 15000+200000
  8540 words of font info for 30 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
  23i,6n,19p,1444b,199s stack positions out of 5000i,500n,10000p,200000b,50000s
-</usr/local/texlive/2010/texmf-dist/fonts/type1/public/am
-sfonts/cm/cmbx12.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/ams
-fonts/cm/cmbx9.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfo
-nts/cm/cmex10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfon
-ts/cm/cmmi10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfont
-s/cm/cmmi7.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmr10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm
-/cmr12.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/c
-mr17.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr
-7.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.p
-fb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pf
-b></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb
->
-Output written on Final_Report.pdf (4 pages, 154118 bytes).
+</usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb
+></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb><
+/usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></
+usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></u
+sr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr
+/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/l
+ocal/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/loc
+al/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local
+/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/te
+xlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texli
+ve/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texliv
+e/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
+Output written on Final_Report.pdf (4 pages, 154750 bytes).
 PDF statistics:
  65 PDF objects out of 1000 (max. 8388607)
  46 compressed objects within 1 object stream
