@@ -1,22 +1,22 @@
 clear all; clc; close all
 
-nplotstep = 8;            % plot interval
+nplotstep = 16;            % plot interval
 
 % Model Parameters
 a     = 2;                % slope modification constant 1.9<a<2.3
 kappa = 1/3;              % MUSCL interpolant parameter
 
 % Switches
-Slope_Mod = 1;            % 1 means on
+Slope_Mod = 0;            % 1 means on
 BC        = 2;            % 1=reflection, 2=periodic
-SCH       = 1;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
+SCH       = 3;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
 TVD       = 2;            % 1=minmod, 2=superbee
 cond      = 2;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
 makemovie     = 1;            % 1=movie
 if makemovie
-    writerObj = VideoWriter('Lax_movie.avi');
-    writerObj.FrameRate = 15;
-    wrtierObj.Quality = 40;
+    writerObj = VideoWriter('MUSCL_noACM.avi');
+    writerObj.FrameRate = 7.5;
+    writerObj.Quality = 50;
     open(writerObj);
 end
 
