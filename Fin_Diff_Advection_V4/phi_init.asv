@@ -1,0 +1,5 @@
+function init = phi_init(X,Y,nx,ny)
+    xnorm = N/nx;
+    init = floor((.7)*(X+nx)/(nx+1));
+end
+
