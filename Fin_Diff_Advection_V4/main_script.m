@@ -1,6 +1,6 @@
 clear all; clc; close all
 
-nplotstep = 1;            % plot interval
+nplotstep = 10;            % plot interval
 
 % Model Parameters
 a     = 2;                % slope modification constant 1.9<a<2.3
@@ -9,21 +9,21 @@ kappa = 1/3;              % MUSCL interpolant parameter
 % Switches
 Slope_Mod = 1;            % 1 means on
 BC        = 2;            % 1=reflection, 2=periodic
-SCH       = 3;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
+SCH       = 4;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
 TVD       = 2;            % 1=minmod, 2=superbee
-cond      = 2;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
+cond      = 3;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
 makemovie = 0;            % 1=movie
 if makemovie
-    writerObj = VideoWriter('Lax_movie.avi');
+    writerObj = VideoWriter('Pacific.avi');
     writerObj.FrameRate = 15;
     wrtierObj.Quality = 40;
     open(writerObj);
 end
 
 % Problem Parameters
-nx = 64;                  % grid size
-ny = 64;                  % grid size
-n  = 64;                  % FIX THIS LATER!!!!!!!!!!!!!!
+nx = 120;                  % grid size
+ny = 120;                  % grid size
+n  = 120;                  % FIX THIS LATER!!!!!!!!!!!!!!
 g  = 0;                   % gravitational constant
 dt = .1;             % static timestep
 dx = 1.0;
@@ -46,19 +46,19 @@ init_phi = phi;
 
 % Set up the quiver plot for the pacific ocean case
 if cond == 3
-    phi_analyt = phi_init(X,Y,nx,ny);
+    phi_analyt = reshape(phi_init(X,Y,nx,ny),nx,ny);
     xp = linspace(0,4200,nx);
     yp = linspace(0,2100,ny);
-    [Y,X] = meshgrid(yp,xp);
+    [YPac,XPac] = meshgrid(yp,xp);
     figure(1);
-    quiver(X(32:64:nx-1,32:64:ny-1),Y(32:64:nx-1,32:64:ny-1),...
-        U(32:64:nx-1,32:64:ny-1),V(32:64:nx-1,32:64:ny-1),.4,'y');
+    quiver(XPac(8:8:nx-1,8:8:ny-1),YPac(8:8:nx-1,8:8:ny-1),...
+        U(8:8:nx-1,8:8:ny-1),V(8:8:nx-1,8:8:ny-1),.4,'y');
     hold on;
-    phi_analyt = reshape(phi_analyt,nx,ny);
-    figure(1), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi_analyt,'EdgeColor', 'none');
+    surf(XPac,YPac,phi_analyt,'EdgeColor', 'none');
     axis([0,4200,0,2100]);
     caxis([-.05,1.05]);
     set(gca,'YDir','reverse');
+    hold off;
 end
 
 % Initialize the matrix solve for the FEM
@@ -438,9 +438,19 @@ while nstep < 6400
         phi = temp;
     end
     % Update plot
-    if 1
+    if cond == 3
+        figure(1);
+        quiver(XPac(8:8:nx-1,8:8:ny-1),YPac(8:8:nx-1,8:8:ny-1),...
+            U(8:8:nx-1,8:8:ny-1),V(8:8:nx-1,8:8:ny-1),.4,'y');
+        hold on;
+        surf(XPac,YPac,phi(3:nx+2,3:ny+2),'EdgeColor', 'none');
+        axis([0,4200,0,2100]);
+        caxis([-.05,1.05]);
+        set(gca,'YDir','reverse');
+        hold off;
+    elseif 1
         if nstep*dt*max(max(V))/ny == 1 || nstep*dt*max(max(V))/ny == 5 ...
-                 || nstep*dt*max(max(V))/ny == 10
+                || nstep*dt*max(max(V))/ny == 10
             phi_analyt = phi_init(mod((X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
                 nx*ny,1)),nx),mod((Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1)),ny),nx,ny);
             phi_analyt = reshape(phi_analyt,nx,ny);
@@ -465,11 +475,11 @@ while nstep < 6400
             figure(4); plot(phi(nx/2,3:ny+2),'.'), hold on, plot(phi_analyt(nx/2,:),'r')
             hold off, axis([1 ny 0 1.1])
             %        figure(4), plot(phi(nx/2,:),'.') axis([1 ny 0 1.1]), pause(.1)
-            if makemovie
-                frame = getframe;
-                writeVideo(writerObj,frame);
-            end
         end
+    end
+    if makemovie
+        frame = getframe;
+        writeVideo(writerObj,frame);
     end
     
     %         if any (any (isnan (H))), break, end  % Unstable, restart

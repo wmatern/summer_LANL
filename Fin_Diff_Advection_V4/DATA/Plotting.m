@@ -29,7 +29,7 @@ end
 close 1 5 10
 %%
 for i = [1,5,10]
-    type = 'Lax-Wendroff_superbee';
+    type = 'Lax_Wendroff_TVD';
     S = load([type,'_',num2str(i),'.dat'],'-mat');
     phi = S.phi(3:end-2,3:end-2);
     phi_analyt = S.phi_analyt;
