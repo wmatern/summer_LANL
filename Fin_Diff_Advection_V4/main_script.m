@@ -9,10 +9,10 @@ kappa = 1/3;              % MUSCL interpolant parameter
 % Switches
 Slope_Mod = 1;            % 1 means on
 BC        = 2;            % 1=reflection, 2=periodic
-SCH       = 2;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
+SCH       = 3;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
 TVD       = 2;            % 1=minmod, 2=superbee
 cond      = 2;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
-makemovie = 1;            % 1=movie
+makemovie = 0;            % 1=movie
 if makemovie
     writerObj = VideoWriter('Lax_movie.avi');
     writerObj.FrameRate = 15;
@@ -25,7 +25,7 @@ nx = 64;                  % grid size
 ny = 64;                  % grid size
 n  = 64;                  % FIX THIS LATER!!!!!!!!!!!!!!
 g  = 0;                   % gravitational constant
-dt = 1;             % static timestep
+dt = .1;             % static timestep
 dx = 1.0;
 dy = 1.0;
 Cx = dt/dx;
@@ -183,7 +183,7 @@ i = 3:n+2; j = 3:n+2;
 % figure(1),plot(plot1,'.-') , title('phi')
 
 % Main loop
-while nstep < 640
+while nstep < 6400
     nstep = nstep + 1;
     
     if BC == 1 % Boundary condition switch
@@ -438,7 +438,7 @@ while nstep < 640
         phi = temp;
     end
     % Update plot
-    if 0
+    if 1
         if nstep*dt*max(max(V))/ny == 1 || nstep*dt*max(max(V))/ny == 5 ...
                  || nstep*dt*max(max(V))/ny == 10
             phi_analyt = phi_init(mod((X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
@@ -446,14 +446,14 @@ while nstep < 640
             phi_analyt = reshape(phi_analyt,nx,ny);
             figure(1),plot(phi(floor(nx/2+2),3:ny+2),'.-') , title('phi'), hold on
             plot(phi_analyt(floor(nx/2),1:ny),'r');
-            legend('MPDATA','Analytical');
+            legend('MUSCL','Analytical');
             hold off
             drawnow;
-            filename = ['MPDATA_',num2str((nstep*dt)*max(max(V))/nx),'.dat'];
+            filename = ['MUSCL_',num2str((nstep*dt)*max(max(V))/ny),'.dat'];
             save(filename,'phi','phi_analyt');
             if nstep*dt*max(max(V))/ny == 10, break, end
         end
-    elseif 1
+    elseif 0
         if mod(nstep,nplotstep) == 0
             phi_analyt = phi_init(mod(X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
                 nx*ny,1),nx),mod(Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1),...
