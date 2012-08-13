@@ -1,0 +1,65 @@
+\documentclass[11pt]{article}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ...
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\usepackage{cite}
+\usepackage{amsmath}
+\usepackage{rotating}
+
+\usepackage{units}
+
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+% \renewcommand \thesection{\Roman{section}}
+% \usepackage{fullpage}
+
+\title{
+Different Methods
+}
+
+ \author{
+   Sean Davis %
+ }
+\begin{document}
+
+\maketitle
+
+% ------------------------------------------------------------------------
+
+\section{Introduction}
+
+\[
+F\left(\Psi_L,\Psi_R,U\right) = [U]^+
+\]
+
+d
+
+\[
+\frac{\partial \Psi}{\partial t} = -\frac{\partial}{\partial x}(u\Psi)
+\]
+
+d
+
+\[
+\frac{\partial \Psi}{\partial t} = -\frac{\partial}{\partial x}(u\Psi)-\frac{\partial}{\partial x}\left(-K\frac{\partial \Psi}{\partial x}\right)
+\]
+
+d
+
+\[
+\frac{\partial h}{\partial t} + \frac{\partial(uh)}{\partial x} + \frac{\partial(vh)}{\partial y} = 0
+\] \[
+\frac{\partial (uh)}{\partial t} + \frac{\partial(u^2h+\nicefrac{1}{2} g h^2)}{\partial x} + \frac{\partial(uvh)}{\partial y} = 0
+\] \[
+\frac{\partial (vh)}{\partial t} + \frac{\partial(uvh)}{\partial x}+ \frac{\partial(v^2h+\nicefrac{1}{2} g h^2)}{\partial y}  = 0
+\]
+\[
+\frac{\partial \psi}{\partial t} + u\frac{\partial \psi}{\partial x} + v\frac{\partial \psi}{\partial y} = 0
+\]
+
+
+\end{document}
