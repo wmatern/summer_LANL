@@ -13,7 +13,7 @@ elseif cond == 2
     phi = phi + ((ynorm-5/12)/(1/12) - ceil(ynorm-6/12).*(2*(ynorm - 6/12)/(1/12))).*(ceil(ynorm-5/12) - ceil(ynorm-7/12));
     phi = phi + exp(-(150*(ynorm-10/12).^2));
     
-    V  = -ones (nx+4,ny+4);
+    V  = ones (nx+4,ny+4);
     U  = zeros(nx+4,ny+4);
 elseif cond == 3
     xnorm = X/nx;

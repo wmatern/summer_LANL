@@ -6,7 +6,7 @@ for i = [1,5,10]
     phi = S.phi(3:end-2,3:end-2);
     phi_analyt = S.phi_analyt;
     clear S;
-    h = figure(i); hold on, plot(0:length(phi)-1,phi(34,:),'.'), plot(0:length(phi)-1,phi_analyt(34,:),'r')
+    h = figure(i); hold on, plot(0:length(phi)-1,phi(34,:),'o','Markersize',2.0), plot(0:length(phi)-1,phi_analyt(34,:),'r','LineWidth',2.0)
     %legend([type,'-SUPG'],'Analytical'), title([type,'-SUPG ','at t = ',num2str(i)]), 
     axis([0,length(phi)-1,-.5,1.5]); set(gca,'FontSize',14);
     hold off

@@ -3,7 +3,7 @@ U = zeros(nx+4,ny+4);
 xnorm = reshape(X,nx,ny)/nx;
 ynorm = reshape(Y,nx,ny)/ny;
 
-U(3:nx+2,3:ny+2) = (10*sqrt((xnorm-.5).^2 + (ynorm-.5).^2)) .* ((ynorm-.5)./sqrt((xnorm-.5).^2+(ynorm-.5).^2));
+U(3:nx+2,3:ny+2) = -(10*sqrt((xnorm-.5).^2 + (ynorm-.5).^2)) .* ((ynorm-.5)./sqrt((xnorm-.5).^2+(ynorm-.5).^2));
 %U(3:nx+2,3:ny+2) = 1;
 
 U (:,2  ) = U (:,3  );
