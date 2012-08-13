@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  12 AUG 2012 19:40
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  13 AUG 2012 12:32
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -70,7 +70,11 @@ Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
 (/usr/local/texlive/2010/texmf-dist/tex/latex/placeins/placeins.sty
 Package: placeins 2005/04/18  v 2.2
 )
-(./Final_Report.aux)
+(./Final_Report.aux
+
+LaTeX Warning: Label `fig:H' multiply defined.
+
+)
 \openout1 = `Final_Report.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 10.
@@ -85,8 +89,7 @@ LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 10.
 LaTeX Font Info:    ... okay on input line 10.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 10.
 LaTeX Font Info:    ... okay on input line 10.
-
-(/usr/local/texlive/2010/texmf-dist/tex/context/base/supp-pdf.mkii
+ (/usr/local/texlive/2010/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count88
 \scratchdimen=\dimen105
@@ -167,92 +170,88 @@ Missing character: There is no Õ in font cmr10!
 File: Images/First_Order_1.png Graphic file (type png)
 
 <use Images/First_Order_1.png>
-<Images/First_Order_5.png, id=22, 294.3798pt x 74.1972pt>
-File: Images/First_Order_5.png Graphic file (type png)
+Overfull \hbox (6.66666pt too wide) in paragraph at lines 7--13
+ [] 
+ []
 
-<use Images/First_Order_5.png>
-<Images/First_Order_10.png, id=23, 294.3798pt x 74.1972pt>
-File: Images/First_Order_10.png Graphic file (type png)
-
-<use Images/First_Order_10.png>
-<Images/Lax-noTVD_1.png, id=24, 1301.8236pt x 326.1786pt>
+<Images/Lax-noTVD_1.png, id=22, 578.16pt x 433.62pt>
 File: Images/Lax-noTVD_1.png Graphic file (type png)
 
 <use Images/Lax-noTVD_1.png>
-<Images/Lax-noTVD_5.png, id=25, 1301.8236pt x 326.1786pt>
+<Images/Lax-noTVD_5.png, id=23, 578.16pt x 433.62pt>
 File: Images/Lax-noTVD_5.png Graphic file (type png)
 
 <use Images/Lax-noTVD_5.png>
-<Images/Lax-noTVD_10.png, id=26, 1301.8236pt x 326.1786pt>
+<Images/Lax-noTVD_10.png, id=24, 578.16pt x 433.62pt>
 File: Images/Lax-noTVD_10.png Graphic file (type png)
 
 <use Images/Lax-noTVD_10.png>
-<Images/Lax-wTVD_1.png, id=27, 1301.8236pt x 326.1786pt>
+<Images/Lax-wTVD_1.png, id=25, 578.16pt x 433.62pt>
 File: Images/Lax-wTVD_1.png Graphic file (type png)
 
 <use Images/Lax-wTVD_1.png>
-<Images/Lax-wTVD_5.png, id=28, 1301.8236pt x 326.1786pt>
+<Images/Lax-wTVD_5.png, id=26, 578.16pt x 433.62pt>
 File: Images/Lax-wTVD_5.png Graphic file (type png)
 
 <use Images/Lax-wTVD_5.png>
-<Images/Lax-wTVD_10.png, id=29, 1301.8236pt x 326.1786pt>
+<Images/Lax-wTVD_10.png, id=27, 578.16pt x 433.62pt>
 File: Images/Lax-wTVD_10.png Graphic file (type png)
 
-<use Images/Lax-wTVD_10.png>
-<Images/MUSCL_1.png, id=30, 964.0818pt x 248.6088pt>
+<use Images/Lax-wTVD_10.png> <Images/MUSCL_1.png, id=28, 578.16pt x 433.62pt>
 File: Images/MUSCL_1.png Graphic file (type png)
- <use Images/MUSCL_1.png>
-<Images/MUSCL_5.png, id=31, 964.0818pt x 248.6088pt>
+
+<use Images/MUSCL_1.png> <Images/MUSCL_5.png, id=29, 578.16pt x 433.62pt>
 File: Images/MUSCL_5.png Graphic file (type png)
- <use Images/MUSCL_5.png>
-<Images/MUSCL_10.png, id=32, 964.0818pt x 248.6088pt>
+
+<use Images/MUSCL_5.png> <Images/MUSCL_10.png, id=30, 578.16pt x 433.62pt>
 File: Images/MUSCL_10.png Graphic file (type png)
 
-<use Images/MUSCL_10.png> <Images/SUPG_1.png, id=33, 1301.8236pt x 326.1786pt>
+<use Images/MUSCL_10.png> <Images/SUPG_1.png, id=31, 578.16pt x 433.62pt>
 File: Images/SUPG_1.png Graphic file (type png)
 
-<use Images/SUPG_1.png> <Images/SUPG_5.png, id=34, 1301.8236pt x 326.1786pt>
+<use Images/SUPG_1.png> <Images/SUPG_5.png, id=32, 578.16pt x 433.62pt>
 File: Images/SUPG_5.png Graphic file (type png)
 
-<use Images/SUPG_5.png> <Images/SUPG_10.png, id=35, 1301.8236pt x 326.1786pt>
+<use Images/SUPG_5.png> <Images/SUPG_10.png, id=33, 578.16pt x 433.62pt>
 File: Images/SUPG_10.png Graphic file (type png)
 
-<use Images/SUPG_10.png> <Images/H_1.png, id=36, 555.07375pt x 482.80376pt>
+<use Images/SUPG_10.png> <Images/H_1.png, id=34, 555.07375pt x 482.80376pt>
 File: Images/H_1.png Graphic file (type png)
 
-<use Images/H_1.png> <Images/H_10.png, id=37, 555.07375pt x 482.80376pt>
+<use Images/H_1.png> <Images/H_10.png, id=35, 555.07375pt x 482.80376pt>
 File: Images/H_10.png Graphic file (type png)
 
-<use Images/H_10.png> <Images/H_20.png, id=38, 555.07375pt x 482.80376pt>
+<use Images/H_10.png> <Images/H_20.png, id=36, 555.07375pt x 482.80376pt>
 File: Images/H_20.png Graphic file (type png)
 
-<use Images/H_20.png> <Images/phi_1.png, id=39, 555.07375pt x 482.80376pt>
+<use Images/H_20.png> <Images/phi_1.png, id=37, 555.07375pt x 482.80376pt>
 File: Images/phi_1.png Graphic file (type png)
 
-<use Images/phi_1.png> <Images/phi_10.png, id=40, 555.07375pt x 482.80376pt>
+<use Images/phi_1.png> <Images/phi_10.png, id=38, 555.07375pt x 482.80376pt>
 File: Images/phi_10.png Graphic file (type png)
 
-<use Images/phi_10.png> <Images/phi_20.png, id=41, 555.07375pt x 482.80376pt>
+<use Images/phi_10.png> <Images/phi_20.png, id=39, 555.07375pt x 482.80376pt>
 File: Images/phi_20.png Graphic file (type png)
 
-<use Images/phi_20.png>) (./Conclusions.tex [3 <./Images/First_Order_1.png> <./
-Images/First_Order_5.png> <./Images/First_Order_10.png> <./Images/Lax-noTVD_1.p
-ng> <./Images/Lax-noTVD_5.png> <./Images/Lax-noTVD_10.png>] [4 <./Images/Lax-wT
-VD_1.png> <./Images/Lax-wTVD_5.png> <./Images/Lax-wTVD_10.png> <./Images/MUSCL_
-1.png> <./Images/MUSCL_5.png> <./Images/MUSCL_10.png> <./Images/SUPG_1.png> <./
-Images/SUPG_5.png> <./Images/SUPG_10.png> <./Images/H_1.png (PNG copy)> <./Imag
+<use Images/phi_20.png>) (./Conclusions.tex [3 <./Images/First_Order_1.png>]
+[4 <./Images/Lax-noTVD_1.png (PNG copy)> <./Images/Lax-noTVD_5.png (PNG copy)> 
+<./Images/Lax-noTVD_10.png (PNG copy)> <./Images/Lax-wTVD_1.png (PNG copy)> <./
+Images/Lax-wTVD_5.png (PNG copy)> <./Images/Lax-wTVD_10.png (PNG copy)> <./Imag
+es/MUSCL_1.png (PNG copy)> <./Images/MUSCL_5.png (PNG copy)> <./Images/MUSCL_10
+.png (PNG copy)>] [5 <./Images/SUPG_1.png (PNG copy)> <./Images/SUPG_5.png (PNG
+ copy)> <./Images/SUPG_10.png (PNG copy)> <./Images/H_1.png (PNG copy)> <./Imag
 es/H_10.png (PNG copy)> <./Images/H_20.png (PNG copy)> <./Images/phi_1.png (PNG
  copy)> <./Images/phi_10.png (PNG copy)> <./Images/phi_20.png (PNG copy)>])
-(./Acknowledgements.tex) (./Final_Report.bbl) [5] (./Final_Report.aux)
+(./Acknowledgements.tex) (./Final_Report.bbl) [6] (./Final_Report.aux)
 
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 1597 strings out of 493747
- 23217 string characters out of 3143546
- 77375 words of memory out of 3000000
- 4834 multiletter control sequences out of 15000+200000
+ 1586 strings out of 493747
+ 22940 string characters out of 3143546
+ 77422 words of memory out of 3000000
+ 4825 multiletter control sequences out of 15000+200000
  8540 words of font info for 30 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
  38i,6n,23p,1444b,263s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -268,10 +267,10 @@ al/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local
 xlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texli
 ve/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texliv
 e/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on Final_Report.pdf (5 pages, 1007955 bytes).
+Output written on Final_Report.pdf (6 pages, 340770 bytes).
 PDF statistics:
- 105 PDF objects out of 1000 (max. 8388607)
- 49 compressed objects within 1 object stream
+ 92 PDF objects out of 1000 (max. 8388607)
+ 51 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 106 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 96 words of extra memory for PDF output out of 10000 (max. 10000000)
 
