@@ -9,21 +9,21 @@ kappa = 1/3;              % MUSCL interpolant parameter
 % Switches
 Slope_Mod = 1;            % 1 means on
 BC        = 2;            % 1=reflection, 2=periodic
-SCH       = 4;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
-TVD       = 2;            % 1=minmod, 2=superbee
-cond      = 3;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
-makemovie = 0;            % 1=movie
+SCH       = 1;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
+TVD       = 3;            % 1=minmod, 2=superbee, 3=upwind
+cond      = 2;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
+makemovie = 1;            % 1=movie
 if makemovie
-    writerObj = VideoWriter('Pacific.avi');
+    writerObj = VideoWriter('Upwind.avi');
     writerObj.FrameRate = 15;
     wrtierObj.Quality = 40;
     open(writerObj);
 end
 
 % Problem Parameters
-nx = 120;                  % grid size
-ny = 120;                  % grid size
-n  = 120;                  % FIX THIS LATER!!!!!!!!!!!!!!
+nx = 64;                  % grid size
+ny = 64;                  % grid size
+n  = 64;                  % FIX THIS LATER!!!!!!!!!!!!!!
 g  = 0;                   % gravitational constant
 dt = .1;             % static timestep
 dx = 1.0;
@@ -152,7 +152,7 @@ if SCH == 4
     M(alias(:,2),:) = [];
     M(:,alias(:,2)) = [];
     
-    M = sparse(M);
+    M = sparse(M');
     K = sparse(K);
     
     options = odeset('Mass',M);
@@ -448,7 +448,11 @@ while nstep < 6400
         caxis([-.05,1.05]);
         set(gca,'YDir','reverse');
         hold off;
-    elseif 1
+        if makemovie
+            frame = getframe;
+            writeVideo(writerObj,frame);
+        end
+    elseif 0
         if nstep*dt*max(max(V))/ny == 1 || nstep*dt*max(max(V))/ny == 5 ...
                 || nstep*dt*max(max(V))/ny == 10
             phi_analyt = phi_init(mod((X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
@@ -463,7 +467,7 @@ while nstep < 6400
             save(filename,'phi','phi_analyt');
             if nstep*dt*max(max(V))/ny == 10, break, end
         end
-    elseif 0
+    elseif 1
         if mod(nstep,nplotstep) == 0
             phi_analyt = phi_init(mod(X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
                 nx*ny,1),nx),mod(Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1),...
@@ -472,15 +476,16 @@ while nstep < 6400
             %         figure(1), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi_analyt);
             %         figure(2), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi(3:nx+2,3:ny+2));
             %         figure(3), imagesc(xp,yp,phi(3:nx+2,3:ny+2)); axis([0,nx,0,ny]); caxis([-.05,1.05]);
-            figure(4); plot(phi(nx/2,3:ny+2),'.'), hold on, plot(phi_analyt(nx/2,:),'r')
+            figure(1); plot(phi(nx/2,3:ny+2),'.'), hold on, plot(phi_analyt(nx/2,:),'r')
             hold off, axis([1 ny 0 1.1])
             %        figure(4), plot(phi(nx/2,:),'.') axis([1 ny 0 1.1]), pause(.1)
+            if makemovie
+                frame = getframe;
+                writeVideo(writerObj,frame);
+            end
         end
     end
-    if makemovie
-        frame = getframe;
-        writeVideo(writerObj,frame);
-    end
+    
     
     %         if any (any (isnan (H))), break, end  % Unstable, restart
     %         if any (any (isinf (H))), break, end  % Unstable, restart

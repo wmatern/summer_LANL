@@ -15,10 +15,12 @@ else
 end
 
 if     method == 1 % use minmod
-    q         = max(min(1.0, min(rminus, rplus)),0.0);
+    q          = max(min(1.0, min(rminus, rplus)),0.0);
 elseif method == 2 % use superbee
     q          = max(0.0, max(min(1.0, 2*theta),...
         min(2.0, theta)));
+elseif method == 3 % upwind
+    q          = 0;
 else
     q          = 1;
 end
