@@ -1,6 +1,6 @@
 clear all; clc; close all
 
-nplotstep = 10;            % plot interval
+nplotstep = 2;            % plot interval
 
 % Model Parameters
 a     = 2;                % slope modification constant 1.9<a<2.3
@@ -9,21 +9,21 @@ kappa = 1/3;              % MUSCL interpolant parameter
 % Switches
 Slope_Mod = 1;            % 1 means on
 BC        = 2;            % 1=reflection, 2=periodic
-SCH       = 1;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
-TVD       = 3;            % 1=minmod, 2=superbee, 3=upwind
-cond      = 2;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
+SCH       = 4;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
+TVD       = 2;            % 1=minmod, 2=superbee, 3=upwind
+cond      = 3;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
 makemovie = 1;            % 1=movie
 if makemovie
-    writerObj = VideoWriter('Upwind.avi');
+    writerObj = VideoWriter('Pacific.avi');
     writerObj.FrameRate = 15;
-    wrtierObj.Quality = 40;
+    wrtierObj.Quality = 75;
     open(writerObj);
 end
 
 % Problem Parameters
-nx = 120;                  % grid size
-ny = 120;                  % grid size
-n  = 120;                  % FIX THIS LATER!!!!!!!!!!!!!!
+nx = 100;                  % grid size
+ny = 100;                  % grid size
+n  = 100;                  % FIX THIS LATER!!!!!!!!!!!!!!
 g  = 0;                    % gravitational constant
 dt = .1;                   % static timestep
 dx = 1.0;
@@ -152,7 +152,7 @@ if SCH == 4
     M(alias(:,2),:) = [];
     M(:,alias(:,2)) = [];
     
-    M = sparse(M');
+    M = sparse(M);
     K = sparse(K);
     
     options = odeset('Mass',M);
@@ -183,7 +183,7 @@ i = 3:n+2; j = 3:n+2;
 % figure(1),plot(plot1,'.-') , title('phi')
 
 % Main loop
-while nstep < 6400
+while nstep < 312
     nstep = nstep + 1;
     
     if BC == 1 % Boundary condition switch
@@ -438,7 +438,7 @@ while nstep < 6400
         phi = temp;
     end
     % Update plot
-    if cond == 3
+    if cond == 3 && mod(nstep,nplotstep) == 0
         figure(1);
         quiver(XPac(8:8:nx-1,8:8:ny-1),YPac(8:8:nx-1,8:8:ny-1),...
             U(8:8:nx-1,8:8:ny-1),V(8:8:nx-1,8:8:ny-1),.4,'y');
@@ -452,11 +452,11 @@ while nstep < 6400
             frame = getframe;
             writeVideo(writerObj,frame);
         end
-    elseif cond == 453
+    elseif 0
         if nstep*dt*max(max(V))/ny == 1 || nstep*dt*max(max(V))/ny == 5 ...
                 || nstep*dt*max(max(V))/ny == 10
             phi_analyt = phi_init(mod((X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
-                nx*ny,1)),nx),mod((Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1)),ny),nx,ny);
+                nx*ny,1)),nx),mod((Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1)),ny),nx,ny,cond);
             phi_analyt = reshape(phi_analyt,nx,ny);
             figure(1),plot(phi(floor(nx/2+2),3:ny+2),'.-') , title('phi'), hold on
             plot(phi_analyt(floor(nx/2),1:ny),'r');
