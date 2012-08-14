@@ -1,6 +1,6 @@
 clear all; clc; close all
 
-nplotstep = 2;            % plot interval
+nplotstep = 10;            % plot interval
 
 % Model Parameters
 a     = 2;                % slope modification constant 1.9<a<2.3
@@ -10,21 +10,22 @@ kappa = 1/3;              % MUSCL interpolant parameter
 Slope_Mod = 1;            % 1 means on
 BC        = 2;            % 1=reflection, 2=periodic
 SCH       = 1;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
-TVD       = 2;            % 1=minmod, 2=superbee
-cond      = 2;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
-makemovie = 1;            % 1=movie
+TVD       = 4;            % 1=minmod, 2=superbee, 3=upwind
+cond      = 4;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
+makemovie = 0;            % 1=movie
 if makemovie
-    writerObj = VideoWriter('Lax_movie.avi');
+    writerObj = VideoWriter('Upwind.avi');
+    writerObj.FrameRate = 15;
+    wrtierObj.Quality = 40;
     open(writerObj);
-    wrtierObj.FrameRate = 60;
 end
 
 % Problem Parameters
-nx = 150;                  % grid size
-ny = 150;                  % grid size
-n  = 150;                  % FIX THIS LATER!!!!!!!!!!!!!!
-g  = 0;                   % gravitational constant
-dt = 0.1;                 % static timestep
+nx = 120;                  % grid size
+ny = 120;                  % grid size
+n  = 120;                  % FIX THIS LATER!!!!!!!!!!!!!!
+g  = 0;                    % gravitational constant
+dt = .1;                   % static timestep
 dx = 1.0;
 dy = 1.0;
 Cx = dt/dx;
@@ -45,19 +46,19 @@ init_phi = phi;
 
 % Set up the quiver plot for the pacific ocean case
 if cond == 3
-    phi_analyt = phi_init(X,Y,nx,ny);
+    phi_analyt = reshape(phi_init(X,Y,nx,ny,cond),nx,ny);
     xp = linspace(0,4200,nx);
     yp = linspace(0,2100,ny);
-    [Y,X] = meshgrid(yp,xp);
+    [YPac,XPac] = meshgrid(yp,xp);
     figure(1);
-    quiver(X(32:64:nx-1,32:64:ny-1),Y(32:64:nx-1,32:64:ny-1),...
-        U(32:64:nx-1,32:64:ny-1),V(32:64:nx-1,32:64:ny-1),.4,'y');
+    quiver(XPac(8:8:nx-1,8:8:ny-1),YPac(8:8:nx-1,8:8:ny-1),...
+        U(8:8:nx-1,8:8:ny-1),V(8:8:nx-1,8:8:ny-1),.4,'y');
     hold on;
-    phi_analyt = reshape(phi_analyt,nx,ny);
-    figure(1), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi_analyt,'EdgeColor', 'none');
+    surf(XPac,YPac,phi_analyt,'EdgeColor', 'none');
     axis([0,4200,0,2100]);
     caxis([-.05,1.05]);
     set(gca,'YDir','reverse');
+    hold off;
 end
 
 % Initialize the matrix solve for the FEM
@@ -88,7 +89,7 @@ if SCH == 4
     Me1 = zeros(3,3);
     Me2 = zeros(3,3);
     Me3 = zeros(3,3);
-    h(m) = .707*nx/(nx-1);
+    h(m) = .707;
     A(m) = abs(.5*(X(tri(m,1)).*Y(tri(m,2)) - X(tri(m,1)).*Y(tri(m,3))...
         + X(tri(m,2)).*Y(tri(m,3)) - X(tri(m,2)).*Y(tri(m,1))...
         + X(tri(m,3)).*Y(tri(m,1)) - X(tri(m,3)).*Y(tri(m,2))))';
@@ -151,7 +152,7 @@ if SCH == 4
     M(alias(:,2),:) = [];
     M(:,alias(:,2)) = [];
     
-    M = sparse(M);
+    M = sparse(M');
     K = sparse(K);
     
     options = odeset('Mass',M);
@@ -182,7 +183,7 @@ i = 3:n+2; j = 3:n+2;
 % figure(1),plot(plot1,'.-') , title('phi')
 
 % Main loop
-while nstep < 1000
+while nstep < 6400
     nstep = nstep + 1;
     
     if BC == 1 % Boundary condition switch
@@ -293,19 +294,30 @@ while nstep < 1000
         V_d_m   (i,j) = (abs(V_halfm(i,j))-V_halfm(i,j).^2).*...
             d_py(i,j-1,phi_New) - U_halfm(i,j).*V_halfm(i,j).*d_px(i,j-1,phi_New);
         
+        if BC == 2
+            V_d_p = Periodic_BCx(V_d_p,nx);
+            V_d_p = Periodic_BCy(V_d_p,ny);
+            
+            V_d_m = Periodic_BCx(V_d_m,nx);
+            V_d_m = Periodic_BCy(V_d_m,ny);
+        end
         % FCT
-        V_d_p(i,j) = 0.5*(V_d_p(i,j)+abs(V_d_p(i,j)))...
-            .*min(1,min(beta_dn_y(phi_New,i,j  ,abs(V_d_m(i,j))),...
-                        beta_up_y(phi_New,i,j+1,abs(V_d_p(i,j)))))...
-                   + 0.5*(V_d_p(i,j)-abs(V_d_p(i,j)))...
-            .*min(1,min(beta_up_y(phi_New,i,j  ,abs(V_d_p(i,j))),...
-                        beta_dn_y(phi_New,i,j+1,abs(V_d_m(i,j))))); 
-        V_d_m(i,j) = 0.5*(V_d_m(i,j)+abs(V_d_m(i,j)))...
-            .*min(1,min(beta_dn_y(phi_New,i,j-1,abs(V_d_m(i,j))),...
-                        beta_up_y(phi_New,i,j  ,abs(V_d_p(i,j)))))...
-                   + 0.5*(V_d_m(i,j)-abs(V_d_m(i,j)))...
-            .*min(1,min(beta_up_y(phi_New,i,j-1,abs(V_d_p(i,j))),...
-                        beta_dn_y(phi_New,i,j  ,abs(V_d_m(i,j)))));
+%         V_d_p(i,j) = min(1,min(beta_dn_y(phi,phi_New,V_d_p,i,j,dt,dy),...
+%             beta_up_y(phi,phi_New,V_d_p,i,j+1,dt,dx))).*my_plus(V_d_p(i,j))+...
+%                      min(1,min(beta_up_y(phi,phi_New,V_d_p,i,j,dt,dy),...
+%             beta_dn_y(phi,phi_New,V_d_p,i,j+1,dt,dx))).*my_minus(V_d_p(i,j));
+%         V_d_m(i,j) = min(1,min(beta_dn_y(phi,phi_New,V_d_m,i,j-1,dt,dy),...
+%             beta_up_y(phi,phi_New,V_d_m,i,j,dt,dx))).*my_plus(V_d_m(i,j))+...
+%                      min(1,min(beta_up_y(phi,phi_New,V_d_m,i,j-1,dt,dy),...
+%             beta_dn_y(phi,phi_New,V_d_m,i,j,dt,dx))).*my_minus(V_d_m(i,j));
+        
+        if BC == 2
+            V_d_p = Periodic_BCx(V_d_p,nx);
+            V_d_p = Periodic_BCy(V_d_p,ny);
+            
+            V_d_m = Periodic_BCx(V_d_m,nx);
+            V_d_m = Periodic_BCy(V_d_m,ny);
+        end
         
         phi (i,j) = phi_New(i,j)...
             - (MPDATA(phi_New(i,j  ),phi_New(i+1,j),U_d_p(i,j))...
@@ -426,32 +438,46 @@ while nstep < 1000
         phi = temp;
     end
     % Update plot
-    if 0
+    if cond == 3
+        figure(1);
+        quiver(XPac(8:8:nx-1,8:8:ny-1),YPac(8:8:nx-1,8:8:ny-1),...
+            U(8:8:nx-1,8:8:ny-1),V(8:8:nx-1,8:8:ny-1),.4,'y');
+        hold on;
+        surf(XPac,YPac,phi(3:nx+2,3:ny+2),'EdgeColor', 'none');
+        axis([0,4200,0,2100]);
+        caxis([-.05,1.05]);
+        set(gca,'YDir','reverse');
+        hold off;
+        if makemovie
+            frame = getframe;
+            writeVideo(writerObj,frame);
+        end
+    elseif cond == 453
         if nstep*dt*max(max(V))/ny == 1 || nstep*dt*max(max(V))/ny == 5 ...
-                 || nstep*dt*max(max(V))/ny == 10
+                || nstep*dt*max(max(V))/ny == 10
             phi_analyt = phi_init(mod((X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
                 nx*ny,1)),nx),mod((Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1)),ny),nx,ny);
             phi_analyt = reshape(phi_analyt,nx,ny);
             figure(1),plot(phi(floor(nx/2+2),3:ny+2),'.-') , title('phi'), hold on
             plot(phi_analyt(floor(nx/2),1:ny),'r');
-            legend('MPDATA','Analytical');
+            legend('MUSCL','Analytical');
             hold off
             drawnow;
-            filename = ['MPDATA_',num2str((nstep*dt)*max(max(V))/nx),'.dat'];
+            filename = ['MUSCL_',num2str((nstep*dt)*max(max(V))/ny),'.dat'];
             save(filename,'phi','phi_analyt');
             if nstep*dt*max(max(V))/ny == 10, break, end
         end
-    elseif 1
+    else
         if mod(nstep,nplotstep) == 0
             phi_analyt = phi_init(mod(X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
                 nx*ny,1),nx),mod(Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1),...
-                ny),nx,ny); %Note that this only works for constant (in space) velocities
+                ny),nx,ny,cond); %Note that this only works for constant (in space) velocities
             phi_analyt = reshape(phi_analyt,nx,ny);
             %         figure(1), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi_analyt);
             %         figure(2), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi(3:nx+2,3:ny+2));
             %         figure(3), imagesc(xp,yp,phi(3:nx+2,3:ny+2)); axis([0,nx,0,ny]); caxis([-.05,1.05]);
-            figure(4); plot(phi(nx/2,3:ny+2),'.'), hold on, plot(phi_analyt(nx/2,:),'r')
-            hold off, axis([1 ny 0 1.1])
+            figure(1); plot(phi(nx/2,3:ny+2),'-'), hold on, plot(phi_analyt(nx/2,:),'r')
+            hold off, axis([ny/4 ny 0.8 1.2])
             %        figure(4), plot(phi(nx/2,:),'.') axis([1 ny 0 1.1]), pause(.1)
             if makemovie
                 frame = getframe;
@@ -460,9 +486,12 @@ while nstep < 1000
         end
     end
     
+    
     %         if any (any (isnan (H))), break, end  % Unstable, restart
     %         if any (any (isinf (H))), break, end  % Unstable, restart
     %         if nstep>80, break, end
     %     if nstep == (ny)/dt*dy, break, end
 end
-close(writerObj);
+if makemovie
+    close(writerObj);
+end

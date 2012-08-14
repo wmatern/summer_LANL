@@ -9,10 +9,10 @@ kappa = 1/3;              % MUSCL interpolant parameter
 % Switches
 Slope_Mod = 1;            % 1 means on
 BC        = 2;            % 1=reflection, 2=periodic
-SCH       = 1;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
-TVD       = 3;            % 1=minmod, 2=superbee, 3=upwind
-cond      = 2;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
-makemovie = 1;            % 1=movie
+SCH       = 2;            % 1=LaxWnd, 2=MPDATA, 3=MUSCL, 4=FEM
+TVD       = 4;            % 1=minmod, 2=superbee, 3=upwind
+cond      = 4;            % 1=1D x-waves, 2=1D y-waves, 3=pacific ocean, 4=1D y-wave
+makemovie = 0;            % 1=movie
 if makemovie
     writerObj = VideoWriter('Upwind.avi');
     writerObj.FrameRate = 15;
@@ -40,6 +40,7 @@ Y     = reshape(Y,nx*ny,1);
 
 % Initialize the velocities and advected term
 [phi U V] = init_cond(X,Y,nx,ny,cond);
+V = -V;
 H = ones(nx+4,ny+4);
 nstep     = 0;
 init_phi = phi;
@@ -302,14 +303,14 @@ while nstep < 6400
             V_d_m = Periodic_BCy(V_d_m,ny);
         end
         % FCT
-%         V_d_p(i,j) = min(1,min(beta_dn_y(phi,phi_New,V_d_p,i,j,dt,dy),...
-%             beta_up_y(phi,phi_New,V_d_p,i,j+1,dt,dx))).*my_plus(V_d_p(i,j))+...
-%                      min(1,min(beta_up_y(phi,phi_New,V_d_p,i,j,dt,dy),...
-%             beta_dn_y(phi,phi_New,V_d_p,i,j+1,dt,dx))).*my_minus(V_d_p(i,j));
-%         V_d_m(i,j) = min(1,min(beta_dn_y(phi,phi_New,V_d_m,i,j-1,dt,dy),...
-%             beta_up_y(phi,phi_New,V_d_m,i,j,dt,dx))).*my_plus(V_d_m(i,j))+...
-%                      min(1,min(beta_up_y(phi,phi_New,V_d_m,i,j-1,dt,dy),...
-%             beta_dn_y(phi,phi_New,V_d_m,i,j,dt,dx))).*my_minus(V_d_m(i,j));
+        V_d_p(i,j) = min(1,min(beta_dn_y(phi,phi_New,V_d_p,i,j,dt,dy),...
+            beta_up_y(phi,phi_New,V_d_p,i,j+1,dt,dx))).*my_plus(V_d_p(i,j))+...
+                     min(1,min(beta_up_y(phi,phi_New,V_d_p,i,j,dt,dy),...
+            beta_dn_y(phi,phi_New,V_d_p,i,j+1,dt,dx))).*my_minus(V_d_p(i,j));
+        V_d_m(i,j) = min(1,min(beta_dn_y(phi,phi_New,V_d_m,i,j-1,dt,dy),...
+            beta_up_y(phi,phi_New,V_d_m,i,j,dt,dx))).*my_plus(V_d_m(i,j))+...
+                     min(1,min(beta_up_y(phi,phi_New,V_d_m,i,j-1,dt,dy),...
+            beta_dn_y(phi,phi_New,V_d_m,i,j,dt,dx))).*my_minus(V_d_m(i,j));
         
         if BC == 2
             V_d_p = Periodic_BCx(V_d_p,nx);
@@ -476,8 +477,8 @@ while nstep < 6400
             %         figure(1), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi_analyt);
             %         figure(2), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi(3:nx+2,3:ny+2));
             %         figure(3), imagesc(xp,yp,phi(3:nx+2,3:ny+2)); axis([0,nx,0,ny]); caxis([-.05,1.05]);
-            figure(1); plot(phi(nx/2,3:ny+2),'.'), hold on, plot(phi_analyt(nx/2,:),'r')
-            hold off, axis([1 ny 0 1.1])
+            figure(1); plot(phi(nx/2,3:ny+2),'-'), hold on, plot(phi_analyt(nx/2,:),'r')
+            hold off, axis([ny/4 3*ny/4 0 1.2])
             %        figure(4), plot(phi(nx/2,:),'.') axis([1 ny 0 1.1]), pause(.1)
             if makemovie
                 frame = getframe;

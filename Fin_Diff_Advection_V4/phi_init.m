@@ -18,6 +18,7 @@ elseif cond == 3
 elseif cond == 4
     ynorm = Y/ny;
     init = ceil(ynorm-0) - ceil(ynorm-0.5);
+    init = init + 0.5*(ceil(ynorm-0.5) - ceil(ynorm-1));
     
 else
     init = zeros(nx,ny);
