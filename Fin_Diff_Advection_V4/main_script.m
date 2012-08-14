@@ -24,8 +24,8 @@ end
 nx = 120;                  % grid size
 ny = 120;                  % grid size
 n  = 120;                  % FIX THIS LATER!!!!!!!!!!!!!!
-g  = 0;                   % gravitational constant
-dt = .1;             % static timestep
+g  = 0;                    % gravitational constant
+dt = .1;                   % static timestep
 dx = 1.0;
 dy = 1.0;
 Cx = dt/dx;
@@ -46,7 +46,7 @@ init_phi = phi;
 
 % Set up the quiver plot for the pacific ocean case
 if cond == 3
-    phi_analyt = reshape(phi_init(X,Y,nx,ny),nx,ny);
+    phi_analyt = reshape(phi_init(X,Y,nx,ny,cond),nx,ny);
     xp = linspace(0,4200,nx);
     yp = linspace(0,2100,ny);
     [YPac,XPac] = meshgrid(yp,xp);
@@ -448,7 +448,7 @@ while nstep < 6400
         caxis([-.05,1.05]);
         set(gca,'YDir','reverse');
         hold off;
-    elseif 1
+    elseif cond == 453
         if nstep*dt*max(max(V))/ny == 1 || nstep*dt*max(max(V))/ny == 5 ...
                 || nstep*dt*max(max(V))/ny == 10
             phi_analyt = phi_init(mod((X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
@@ -463,16 +463,16 @@ while nstep < 6400
             save(filename,'phi','phi_analyt');
             if nstep*dt*max(max(V))/ny == 10, break, end
         end
-    elseif 0
+    else
         if mod(nstep,nplotstep) == 0
             phi_analyt = phi_init(mod(X-nstep*dt*reshape(U(3:nx+2,3:ny+2),...
                 nx*ny,1),nx),mod(Y-nstep*dt*reshape(V(3:nx+2,3:ny+2),nx*ny,1),...
-                ny),nx,ny); %Note that this only works for constant (in space) velocities
+                ny),nx,ny,cond); %Note that this only works for constant (in space) velocities
             phi_analyt = reshape(phi_analyt,nx,ny);
             %         figure(1), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi_analyt);
             %         figure(2), surf(reshape(X,nx,ny),reshape(Y,nx,ny),phi(3:nx+2,3:ny+2));
             %         figure(3), imagesc(xp,yp,phi(3:nx+2,3:ny+2)); axis([0,nx,0,ny]); caxis([-.05,1.05]);
-            figure(4); plot(phi(nx/2,3:ny+2),'.'), hold on, plot(phi_analyt(nx/2,:),'r')
+            figure(4); plot(phi(nx/2,3:ny+2),'-'), hold on, plot(phi_analyt(nx/2,:),'r')
             hold off, axis([1 ny 0 1.1])
             %        figure(4), plot(phi(nx/2,:),'.') axis([1 ny 0 1.1]), pause(.1)
         end
