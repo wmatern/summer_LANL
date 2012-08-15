@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  13 AUG 2012 12:32
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  14 AUG 2012 18:24
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -70,26 +70,35 @@ Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
 (/usr/local/texlive/2010/texmf-dist/tex/latex/placeins/placeins.sty
 Package: placeins 2005/04/18  v 2.2
 )
-(./Final_Report.aux
+(/usr/local/texlive/2010/texmf-dist/tex/latex/units/units.sty
+Package: units 1998/08/04 v0.9b Typesetting units
 
-LaTeX Warning: Label `fig:H' multiply defined.
-
+(/usr/local/texlive/2010/texmf-dist/tex/latex/base/ifthen.sty
+Package: ifthen 2001/05/26 v1.1c Standard LaTeX ifthen package (DPC)
 )
+(/usr/local/texlive/2010/texmf-dist/tex/latex/units/nicefrac.sty
+Package: nicefrac 1998/08/04 v0.9b Nice fractions
+\L@UnitsRaiseDisplaystyle=\skip44
+\L@UnitsRaiseTextstyle=\skip45
+\L@UnitsRaiseScriptstyle=\skip46
+))
+(./Final_Report.aux)
 \openout1 = `Final_Report.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 10.
-LaTeX Font Info:    ... okay on input line 10.
- (/usr/local/texlive/2010/texmf-dist/tex/context/base/supp-pdf.mkii
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+
+(/usr/local/texlive/2010/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count88
 \scratchdimen=\dimen105
@@ -148,129 +157,140 @@ File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 13.
+(Font)              <12> on input line 16.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 13.
+(Font)              <8> on input line 16.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 13.
+(Font)              <6> on input line 16.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 16.
 
-(./Abstract.tex) (./Introduction.tex (./GPU.tex)) (./Methods.tex (./Lax.tex
-[1
+(./Abstract.tex) (./Introduction.tex (./GPU.tex)) [1
 
-{/usr/local/texlive/2010/texmf-var/fonts/map/pdftex/updmap/pdftex.map}])
+{/usr/local/texlive/2010/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] (./Meth
+ods.tex (./Lax.tex)
 (./MPDATA.tex
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <7> on input line 9.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 9.
-) (./MUSCL.tex
+) (./MUSCL.tex [2]
 Missing character: There is no Õ in font cmr10!
-) (./SUPG.tex [2])) (./Results.tex
-<Images/First_Order_1.png, id=20, 294.3798pt x 74.1972pt>
-File: Images/First_Order_1.png Graphic file (type png)
+) (./SUPG.tex)) (./WaveCode.tex [3])
+(./Results.tex <Images/Upwind_1.png, id=26, 578.16pt x 433.62pt>
+File: Images/Upwind_1.png Graphic file (type png)
 
-<use Images/First_Order_1.png>
-Overfull \hbox (6.66666pt too wide) in paragraph at lines 7--13
- [] 
- []
+<use Images/Upwind_1.png> <Images/Upwind_5.png, id=27, 578.16pt x 433.62pt>
+File: Images/Upwind_5.png Graphic file (type png)
 
-<Images/Lax-noTVD_1.png, id=22, 578.16pt x 433.62pt>
+<use Images/Upwind_5.png> <Images/Upwind_10.png, id=28, 578.16pt x 433.62pt>
+File: Images/Upwind_10.png Graphic file (type png)
+
+<use Images/Upwind_10.png>
+<Images/Lax-noTVD_1.png, id=29, 578.16pt x 433.62pt>
 File: Images/Lax-noTVD_1.png Graphic file (type png)
 
 <use Images/Lax-noTVD_1.png>
-<Images/Lax-noTVD_5.png, id=23, 578.16pt x 433.62pt>
+<Images/Lax-noTVD_5.png, id=30, 578.16pt x 433.62pt>
 File: Images/Lax-noTVD_5.png Graphic file (type png)
 
 <use Images/Lax-noTVD_5.png>
-<Images/Lax-noTVD_10.png, id=24, 578.16pt x 433.62pt>
+<Images/Lax-noTVD_10.png, id=31, 578.16pt x 433.62pt>
 File: Images/Lax-noTVD_10.png Graphic file (type png)
 
 <use Images/Lax-noTVD_10.png>
-<Images/Lax-wTVD_1.png, id=25, 578.16pt x 433.62pt>
+<Images/Lax-wTVD_1.png, id=32, 578.16pt x 433.62pt>
 File: Images/Lax-wTVD_1.png Graphic file (type png)
 
 <use Images/Lax-wTVD_1.png>
-<Images/Lax-wTVD_5.png, id=26, 578.16pt x 433.62pt>
+<Images/Lax-wTVD_5.png, id=33, 578.16pt x 433.62pt>
 File: Images/Lax-wTVD_5.png Graphic file (type png)
 
 <use Images/Lax-wTVD_5.png>
-<Images/Lax-wTVD_10.png, id=27, 578.16pt x 433.62pt>
+<Images/Lax-wTVD_10.png, id=34, 578.16pt x 433.62pt>
 File: Images/Lax-wTVD_10.png Graphic file (type png)
 
-<use Images/Lax-wTVD_10.png> <Images/MUSCL_1.png, id=28, 578.16pt x 433.62pt>
+<use Images/Lax-wTVD_10.png> <Images/MUSCL_1.png, id=35, 578.16pt x 433.62pt>
 File: Images/MUSCL_1.png Graphic file (type png)
 
-<use Images/MUSCL_1.png> <Images/MUSCL_5.png, id=29, 578.16pt x 433.62pt>
+<use Images/MUSCL_1.png> <Images/MUSCL_5.png, id=36, 578.16pt x 433.62pt>
 File: Images/MUSCL_5.png Graphic file (type png)
 
-<use Images/MUSCL_5.png> <Images/MUSCL_10.png, id=30, 578.16pt x 433.62pt>
+<use Images/MUSCL_5.png> <Images/MUSCL_10.png, id=37, 578.16pt x 433.62pt>
 File: Images/MUSCL_10.png Graphic file (type png)
 
-<use Images/MUSCL_10.png> <Images/SUPG_1.png, id=31, 578.16pt x 433.62pt>
+<use Images/MUSCL_10.png> <Images/SUPG_1.png, id=38, 578.16pt x 433.62pt>
 File: Images/SUPG_1.png Graphic file (type png)
 
-<use Images/SUPG_1.png> <Images/SUPG_5.png, id=32, 578.16pt x 433.62pt>
+<use Images/SUPG_1.png> <Images/SUPG_5.png, id=39, 578.16pt x 433.62pt>
 File: Images/SUPG_5.png Graphic file (type png)
 
-<use Images/SUPG_5.png> <Images/SUPG_10.png, id=33, 578.16pt x 433.62pt>
+<use Images/SUPG_5.png> <Images/SUPG_10.png, id=40, 578.16pt x 433.62pt>
 File: Images/SUPG_10.png Graphic file (type png)
 
-<use Images/SUPG_10.png> <Images/H_1.png, id=34, 555.07375pt x 482.80376pt>
+<use Images/SUPG_10.png> [4 <./Images/Upwind_1.png (PNG copy)> <./Images/Upwind
+_5.png (PNG copy)> <./Images/Upwind_10.png (PNG copy)> <./Images/Lax-noTVD_1.pn
+g (PNG copy)> <./Images/Lax-noTVD_5.png (PNG copy)> <./Images/Lax-noTVD_10.png 
+(PNG copy)>] [5 <./Images/Lax-wTVD_1.png (PNG copy)> <./Images/Lax-wTVD_5.png (
+PNG copy)> <./Images/Lax-wTVD_10.png (PNG copy)> <./Images/MUSCL_1.png (PNG cop
+y)> <./Images/MUSCL_5.png (PNG copy)> <./Images/MUSCL_10.png (PNG copy)> <./Ima
+ges/SUPG_1.png (PNG copy)> <./Images/SUPG_5.png (PNG copy)> <./Images/SUPG_10.p
+ng (PNG copy)>] <Images/H_1.png, id=47, 555.07375pt x 482.80376pt>
 File: Images/H_1.png Graphic file (type png)
 
-<use Images/H_1.png> <Images/H_10.png, id=35, 555.07375pt x 482.80376pt>
+<use Images/H_1.png> <Images/H_10.png, id=48, 555.07375pt x 482.80376pt>
 File: Images/H_10.png Graphic file (type png)
 
-<use Images/H_10.png> <Images/H_20.png, id=36, 555.07375pt x 482.80376pt>
+<use Images/H_10.png> <Images/H_20.png, id=49, 555.07375pt x 482.80376pt>
 File: Images/H_20.png Graphic file (type png)
 
-<use Images/H_20.png> <Images/phi_1.png, id=37, 555.07375pt x 482.80376pt>
+<use Images/H_20.png> <Images/phi_1.png, id=50, 555.07375pt x 482.80376pt>
 File: Images/phi_1.png Graphic file (type png)
 
-<use Images/phi_1.png> <Images/phi_10.png, id=38, 555.07375pt x 482.80376pt>
+<use Images/phi_1.png> <Images/phi_10.png, id=51, 555.07375pt x 482.80376pt>
 File: Images/phi_10.png Graphic file (type png)
 
-<use Images/phi_10.png> <Images/phi_20.png, id=39, 555.07375pt x 482.80376pt>
+<use Images/phi_10.png> <Images/phi_20.png, id=52, 555.07375pt x 482.80376pt>
 File: Images/phi_20.png Graphic file (type png)
 
-<use Images/phi_20.png>) (./Conclusions.tex [3 <./Images/First_Order_1.png>]
-[4 <./Images/Lax-noTVD_1.png (PNG copy)> <./Images/Lax-noTVD_5.png (PNG copy)> 
-<./Images/Lax-noTVD_10.png (PNG copy)> <./Images/Lax-wTVD_1.png (PNG copy)> <./
-Images/Lax-wTVD_5.png (PNG copy)> <./Images/Lax-wTVD_10.png (PNG copy)> <./Imag
-es/MUSCL_1.png (PNG copy)> <./Images/MUSCL_5.png (PNG copy)> <./Images/MUSCL_10
-.png (PNG copy)>] [5 <./Images/SUPG_1.png (PNG copy)> <./Images/SUPG_5.png (PNG
- copy)> <./Images/SUPG_10.png (PNG copy)> <./Images/H_1.png (PNG copy)> <./Imag
-es/H_10.png (PNG copy)> <./Images/H_20.png (PNG copy)> <./Images/phi_1.png (PNG
- copy)> <./Images/phi_10.png (PNG copy)> <./Images/phi_20.png (PNG copy)>])
-(./Acknowledgements.tex) (./Final_Report.bbl) [6] (./Final_Report.aux)
+<use Images/phi_20.png>) (./Conclusions.tex
 
-LaTeX Warning: There were multiply-defined labels.
+LaTeX Warning: Reference `Lax-wTVD' on page 6 undefined on input line 4.
+
+) [6 <./Images/H_1.png (PNG copy)> <./Images/H_10.png (PNG copy)> <./Images/H_2
+0.png (PNG copy)> <./Images/phi_1.png (PNG copy)> <./Images/phi_10.png (PNG cop
+y)> <./Images/phi_20.png (PNG copy)>] (./Acknowledgements.tex)
+(./Final_Report.bbl) [7] (./Final_Report.aux)
+
+LaTeX Warning: There were undefined references.
 
  ) 
 Here is how much of TeX's memory you used:
- 1586 strings out of 493747
- 22940 string characters out of 3143546
- 77422 words of memory out of 3000000
- 4825 multiletter control sequences out of 15000+200000
- 8540 words of font info for 30 fonts, out of 3000000 for 9000
+ 1688 strings out of 493747
+ 24452 string characters out of 3143546
+ 78906 words of memory out of 3000000
+ 4911 multiletter control sequences out of 15000+200000
+ 8848 words of font info for 31 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
- 38i,6n,23p,1444b,263s stack positions out of 5000i,500n,10000p,200000b,50000s
-</usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb
-></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb><
-/usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></
-usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></u
-sr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr
-/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/l
-ocal/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/loc
-al/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local
-/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/te
-xlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texli
-ve/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texliv
-e/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on Final_Report.pdf (6 pages, 340770 bytes).
+ 38i,11n,23p,1314b,292s stack positions out of 5000i,500n,10000p,200000b,50000s
+</usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
+></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
+</usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx9.pfb></
+usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></u
+sr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></us
+r/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/
+local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/lo
+cal/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/loca
+l/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/
+texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/tex
+live/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texliv
+e/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2
+010/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/20
+10/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2010
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2010/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
+Output written on Final_Report.pdf (7 pages, 392555 bytes).
 PDF statistics:
- 92 PDF objects out of 1000 (max. 8388607)
- 51 compressed objects within 1 object stream
+ 113 PDF objects out of 1000 (max. 8388607)
+ 66 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 96 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 106 words of extra memory for PDF output out of 10000 (max. 10000000)
 
