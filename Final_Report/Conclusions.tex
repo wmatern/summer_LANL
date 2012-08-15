@@ -1,7 +1,7 @@
 \section{Conclusions and Future Directions}
 \label{conclusions}
 
-As was described in the introduction, the first order scheme shown in Figure \ref{First_Order} will remain stable across a sharp discontinuity. When higher order methods are considered, this is not necessarily the case. The second order Lax Wendroff scheme does not exhibit monotonicity by itself as can be seen in Figure \ref{fig:Lax-noTVD}. When a Superbee limiter is introduced as in Figure \ref{Lax-wTVD}, the method drops to first order near the steep gradients and the method can be considered TVD. Superbee is the TVD best limiter for sharp discontinuities albeit still diffuse but it over sharpens smooth waves.
+As was described in the introduction, the first order scheme shown in Figure \ref{First_Order} will remain stable across a sharp discontinuity. When higher order methods are considered, this is not necessarily the case. The second order Lax-Wendroff scheme does not exhibit monotonicity by itself as can be seen in Figure \ref{fig:Lax-noTVD}. When a Superbee limiter is introduced as in Figure \ref{fig:Lax-wTVD}, the method drops to first order near the steep gradients and the method can be considered TVD. Superbee is the TVD best limiter for sharp discontinuities albeit still diffuse but it over sharpens smooth waves.
 
 Both the pros and the cons of the MUSCL are starker than the Lax-Wendroff TVD scheme used. The MUSCL is even more effective at preventing diffusion across sharp interfaces. On the down side, the MUSCL unnaturally sharpens normally smooth waves as is evident from the evolution of the initially exponential distribution in Figure \ref{fig:MUSCL}. 
 

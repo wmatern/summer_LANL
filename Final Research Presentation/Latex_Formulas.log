@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  12 AUG 2012 22:13
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  15 AUG 2012 11:19
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -304,7 +304,7 @@ File: umsb.fd 2009/06/22 v3.00 AMS symbols B
 Here is how much of TeX's memory you used:
  2895 strings out of 493747
  38790 string characters out of 3143546
- 99976 words of memory out of 3000000
+ 100976 words of memory out of 3000000
  6143 multiletter control sequences out of 15000+200000
  10737 words of font info for 41 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
@@ -319,7 +319,7 @@ s/cm/cmr12.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/
 cm/cmr17.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm
 /cmr8.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cm
 sy10.pfb>
-Output written on Latex_Formulas.pdf (1 page, 79803 bytes).
+Output written on Latex_Formulas.pdf (1 page, 80093 bytes).
 PDF statistics:
  44 PDF objects out of 1000 (max. 8388607)
  31 compressed objects within 1 object stream
