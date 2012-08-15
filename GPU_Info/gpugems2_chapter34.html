@@ -1,0 +1,1239 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+<html><head>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+	<title>GPU Gems - Chapter 34. GPU Flow-Control Idioms</title>
+
+	<meta name="keywords" content="GPU GPGPU NVIDIA OpenGL Open_GL DirectX DX8 DX9 DX10 texture texture_mapping texturemap texture_map shading shader shaders realtime real_time CAD highperformancecomputing hpc gpu_compute tesla quadroplex geforce quadro hair skin cloth motion_blur dof depth_of_field anisotropic image_processing filtering filters volume volume_rendering financial">
+
+	<link type="image/x-icon" href="http://www.nvidia.com/content/images/NVSphere.ico" rel="shortcut icon">
+
+  <!-- <link rel="stylesheet" href="books.css" type="text/css" />	 -->
+
+
+
+<style type="text/css">
+
+body {
+
+  min-width: 700px;      /* 2x LC width + RC width */
+
+  
+
+  font-family:Verdana, Geneva, Arial, Helvetica, Sans Serif;
+
+  font-size: 11px;
+
+  background-image:url('http://developer.nvidia.com/docs/TEMPLATE/423/developers_1px_bg_alt2.jpg');
+
+  background-repeat: repeat-x;
+
+  margin-left:5px;
+
+  margin-top:0px;
+
+}
+
+#container {
+
+  padding-top:55px;
+
+  padding-left: 200px;   /* LC width */
+
+  padding-right: 300px;  /* RC width */  
+
+}
+
+#container .column {
+
+  position: relative;
+
+  float: left;
+
+}
+
+#center {
+
+  width: 100%;
+
+  padding: 3px;
+
+  background-color: #FFFFFF;
+
+  border: medium solid #cccccc;
+
+  border-width: 1px;
+
+  
+
+/*  borderColor: #dfdfe7;
+
+  borderColorLight: #e9eaed; */
+
+}
+
+#left {
+
+  width: 200px;          /* LC width */
+
+  right: 200px;          /* LC width */  
+
+  margin-left: -100%;
+
+}
+
+
+
+#container > #left {
+
+  left: -200px;
+
+  margin-left: expression(document.all.center.offsetWidth * -1);
+
+}
+
+
+
+
+
+#right {
+
+  width: 300px;          /* RC width */
+
+  margin-right: -300px;  /* RC width */  
+
+}
+
+#footer {
+
+  clear: both;
+
+}
+
+
+
+#header {
+
+height:80px;
+
+background: transparent url(dev_site_header.jpg) no-repeat fixed top left;
+
+clear: both;
+
+}
+
+
+
+/*** IE6 Fix ***/
+
+* html #left {
+
+  left: 315px;           /* RC width */
+
+}
+
+
+
+/* Original Holy Grail IE6 hack to stop the negative margin pulling the left column too far to the left, incorporating the 'left column disappearing hack' + the IE7 javascript fix */
+
+#container > #leftcolumn {
+
+  left: -100px;             /* Negative of (LC fullwidth + CC padding) = width for all browers other than IE7 */
+
+  margin-left: expression(
+
+  document.all.center.offsetWidth * -1 +
+
+  parseFloat(document.all.center.currentStyle.paddingLeft) +
+
+  parseFloat(document.all.left.currentStyle.paddingLeft) +
+
+  parseFloat(document.all.left.currentStyle.paddingRight)
+
+  ); /* Fix for IE7 */
+
+}
+
+
+
+
+
+
+
+#searchbar {
+
+position: absolute;
+
+top: 25px;
+
+right:200px;
+
+}
+
+	
+
+	
+
+A { 
+
+text-decoration:none;
+
+/* color: #008000; */
+
+/* green color: #76b900; */
+
+/*font-weight:bold; */
+
+color: #5B8C00;
+
+}
+
+
+
+A:hover { 
+
+text-decoration:underline;
+
+color: #000000;
+
+}
+
+
+
+A:visited { 
+
+color: #5B8C00;
+
+}	
+
+
+
+input.searchbox {
+
+font-family: Arial, Helvetica, sans-serif;
+
+font-size: 11px;
+
+color: #666666;
+
+text-indent: 3px;
+
+}
+
+
+
+H1 { 
+
+font-size:15px;
+
+color: #000000;
+
+font-weight:bold;
+
+}
+
+H2 { 
+
+font-size:14px;
+
+color: #000000;
+
+font-weight:bold;
+
+}
+
+H3 { 
+
+font-size:14px;
+
+color: #000080;
+
+font-weight:bold;
+
+}
+
+H4 { 
+
+font-size:12px;
+
+color: #000000;
+
+font-weight:bold;
+
+}
+
+H5 { 
+
+font-size:12px;
+
+color: #000080;
+
+font-weight:bold;
+
+}
+
+H6 { 
+
+font-size:10px;
+
+color: #000000;
+
+font-weight:bold;
+
+}
+
+H6 { 
+
+font-size:10px;
+
+color: #000080;
+
+font-weight:bold;
+
+}
+
+
+
+li.comingsoon {
+
+font-size:11px;
+
+color: #cccccc;
+
+}
+
+
+
+</style>
+
+</head><body>
+
+
+
+
+
+<div id="header">
+
+</div>
+
+
+
+<div id="searchbar">
+
+
+
+<form method="get" action="http://search.developer.nvidia.com/" name="search">
+
+
+
+<input style="font-size:11px;color: #666666;text-indent: 3px;" name="q" size="20" maxlength="50" onfocus="javascript:document.search.q.value = '';" value="Search" type="text">
+
+
+
+</form>
+
+
+
+</div>
+
+
+
+
+
+<div id="container">
+
+  <div id="center" class="column">
+
+		<a href="http://developer.nvidia.com/object/gpu_gems_2_home.html"><img src="gpugems2_chapter34_files/GPU_Gems_2.jpg" align="left" border="0" hspace="5"> <h1>GPU Gems 2</h1></a>
+
+		<b>GPU Gems 2</b> is now available, right here, online. You can <a href="http://www.informit.com/promotion/136275">purchase a beautifully printed version of this book</a>, and others in the series, at a 30% discount courtesy of InformIT and Addison-Wesley. 
+
+<br><br>
+
+
+
+Please visit our <a href="http://developer.nvidia.com/object/all_documents.html">Recent Documents</a> page to see all the latest whitepapers and conference presentations that can help you with your projects.	
+
+		
+
+		
+
+		<br><br><br clear="ALL">
+
+		<hr>
+
+
+
+
+	<title>Chapter 34. GPU Flow-Control Idioms</title>
+
+	<!-- Coding by Eric S. Miller (eric -dot- miller -at- pearson -dot- com) -->
+
+
+
+
+
+
+
+
+
+<h1>Chapter 34. GPU Flow-Control Idioms</h1>
+
+
+
+
+
+
+
+<p>
+
+   <em>Mark&nbsp;Harris</em>
+
+   <br>
+
+   <em>NVIDIA&nbsp;Corporation</em>
+
+</p>
+
+
+
+<p>
+
+   <em>Ian&nbsp;Buck</em>
+
+   <br>
+
+   <em>Stanford&nbsp;University</em>
+
+</p>
+
+
+
+<p>Flow control is one of the most fundamental concepts taught to 
+beginning programmers. Branching and looping are such basic concepts 
+that it can be daunting to write software for a platform that supports 
+them in a limited manner. The latest GPUs support vertex and fragment 
+program branching in multiple forms, but their highly parallel nature 
+requires care in how they are used. This chapter surveys some of the 
+limitations of branching on current GPUs and describes a variety of 
+techniques for iteration and decision making in GPGPU programs.</p>
+
+
+
+
+
+
+
+
+
+
+
+<h2>34.1 Flow-Control Challenges</h2>
+
+
+
+<p>Let's start by discussing the most obvious form of flow control on 
+GPUs. All current high-level shading languages for GPUs support 
+traditional C-style explicit flow-control constructs, such as 
+if-then-else, for, and while. The underlying implementations of these, 
+however, are much different from their implementations on CPUs.</p>
+
+
+
+<p>For example, consider the following code:</p>
+
+
+
+<pre>if (a)
+
+  b = f();
+
+else
+
+  b = g();</pre>
+
+
+
+<p>CPUs can easily branch based on the Boolean <tt>a</tt> and evaluate either the <tt>f()</tt> or <tt>g()</tt>
+ functions. The performance characteristics of this branch are 
+relatively easily understood: CPUs generally have long instruction 
+pipelines, so it is important that the CPU be able to accurately predict
+ whether a particular branch will be taken. If this prediction is done 
+successfully, branching generally incurs a small penalty. If the branch 
+is not correctly predicted, the CPU may stall for a number of cycles as 
+the pipeline is flushed and must be refilled from the correct target 
+address. As long as the functions <tt>f()</tt> and <tt>g()</tt> have a reasonable number of instructions, these costs aren't too high.</p>
+
+
+
+<p>The latest GPUs, such as the NVIDIA GeForce 6 Series, have similar 
+branch instructions, though their performance characteristics are 
+slightly different. Older GPUs do not have native branching of this 
+form, so other strategies are necessary to emulate these operations.</p>
+
+
+
+<p>The two most common control mechanisms in parallel architectures are 
+single instruction, multiple data (SIMD) and multiple instruction, 
+multiple data (MIMD). All processors in a SIMD-parallel architecture 
+execute the same instruction at the same time; in a MIMD-parallel 
+architecture, different processors may simultaneously execute different 
+instructions. There are three current methods used by GPUs to implement 
+branching: MIMD branching, SIMD branching, and condition codes.</p>
+
+
+
+<p>MIMD branching is the ideal case, in which different processors can 
+take different data-dependent branches without penalty, much like a CPU.
+ The NVIDIA GeForce 6 Series supports MIMD branching in its vertex 
+processors.</p>
+
+
+
+<p>SIMD branching allows branching and looping inside a program, but 
+because all processors must execute identical instructions, divergent 
+branching can result in reduced performance. For example, imagine a 
+fragment program that decides the output value of each fragment by 
+branching using conditions based on random input numbers. The fragments 
+will randomly take different branches, which can cause processors that 
+are running threads for fragments that do not take the branch to stall 
+until other processors are finished running threads for fragments that 
+do take the branch. The end result is that many fragments will take as 
+long as both branches together, plus the overhead of the branch 
+instruction. SIMD branching is very useful in cases where the branch 
+conditions are fairly "spatially" coherent, but lots of incoherent 
+branching can be expensive. NVIDIA GeForce FX GPUs support SIMD 
+branching in their vertex processors, and NVIDIA GeForce 6 Series GPUs 
+support it in their fragment processors.</p>
+
+
+
+<p>Condition codes (predication) are used in older architectures to 
+emulate true branching. If-then statements compiled to these 
+architectures must evaluate both taken and not taken branch instructions
+ on all fragments. The branch condition is evaluated and a condition 
+code is set. The instructions in each part of the branch must check the 
+value of the condition code before writing their results to registers. 
+As a result, only instructions in taken branches write their output. 
+Thus, in these architectures all branches cost as much as both parts of 
+the branch, plus the cost of evaluating the branch condition. Branching 
+should be used sparingly on such architectures. NVIDIA GeForce FX Series
+ GPUs use condition-code branch emulation in their fragment processors.</p>
+
+
+
+<h2>34.2 Basic Flow-Control Strategies</h2>
+
+
+
+
+
+<h4>34.2.1 Predication</h4>
+
+
+
+<p>The simplest approach to implementing branching on the GPU is 
+predication, as discussed earlier. With predication, the GPU effectively
+ evaluates both sides of the branch and then discards one of the 
+results, based on the value of the Boolean branch condition. The 
+disadvantage of this approach is that evaluating both sides of the 
+branch can be costly if <tt>f()</tt> and <tt>g()</tt> are large 
+functions. While predication may be effective for small branches, 
+alternative strategies are necessary for more complex branching.</p>
+
+
+
+
+
+
+
+<h4>34.2.2 Moving Branching up the Pipeline</h4>
+
+
+
+<p>Because explicit branching can be tricky on GPUs, it's handy to have a
+ number of techniques in your repertoire. A useful strategy is to move 
+flow-control decisions up the pipeline to an earlier stage, where they 
+can be more efficiently evaluated.</p>
+
+
+
+
+
+<h4>Static Branch Resolution</h4>
+
+
+
+<p>When performing computations on streams or arrays of data on the CPU,
+ most programmers know that they should strive to avoid branching inside
+ the inner loops of the computation. Doing so can cause the pipeline to 
+stall due to incorrect branch prediction. For example, consider 
+evaluating a partial differential equation (PDE) on a discrete spatial 
+grid. Correct evaluation of the PDE on a finite domain requires boundary
+ conditions. A naive CPU implementation might iterate over the entire 
+grid, deciding at each cell if it is a boundary cell and applying the 
+appropriate computation based on the result of the decision. A better 
+implementation divides the processing into multiple loops: one over the 
+interior of the grid, excluding boundary cells, and one or more over the
+ boundary edges. This <em>static branch resolution</em> results in loops that contain efficient code without branches.</p>
+
+
+
+<p>The same optimization is even more important on most GPUs. In this 
+case, the computation is divided into two fragment programs: one for 
+interior cells and one for boundary cells. The interior program is 
+applied to the fragments of a quad drawn over all but the outer 
+single-cell-wide edge of the output buffer. The boundary program is 
+applied to fragments of lines drawn over the edge pixels.</p>
+
+
+
+
+
+
+
+<h4>Precomputation</h4>
+
+
+
+<p>In the preceding example, the result of a branch was constant over a 
+large domain of input (or range of output) values. Similarly, sometimes 
+the result of a branch is constant for a period of time or a number of 
+iterations of a computation. In this case, we can evaluate the branches 
+only when the results change, and store the results for use over many 
+subsequent iterations. This can result in a large performance boost.</p>
+
+
+
+<p>The "gpgpu_fluid" example in the NVIDIA SDK uses this technique to 
+avoid branching when computing boundary conditions at the edges of 
+arbitrary obstacles in the flow field. In this case, fluid cells with no
+ neighboring obstacles can be processed normally, but cells with 
+neighboring obstacles require more work. These cells must check their 
+neighbors to figure out in which direction the obstacle lies, and they 
+use this direction to look up more data to be used in the computation. 
+In the example, the obstacles change only when the user "paints" them. 
+Therefore, we can precompute the offset direction and store it in an 
+offset texture to be reused until the user changes the obstacles again.</p>
+
+
+
+
+
+
+
+
+
+<h4>34.2.3 Z-Cull</h4>
+
+
+
+<p>We can take precomputed branch results a step further and use another
+ GPU feature to entirely skip unnecessary work. Modern GPUs have a 
+number of features designed to avoid shading pixels that will not be 
+seen. One of these is z-cull. Z-cull is a technique for comparing the 
+depth (z) of incoming fragments with the depth of the corresponding 
+fragments in the z-buffer such that if the incoming fragments fail the 
+depth test, they are discarded before their pixel colors are calculated 
+in the fragment processor. Thus, only fragments that pass the depth test
+ are processed, work is saved, and the application runs faster.</p>
+
+
+
+<p>We can use this technique for general-purpose computation, too. In 
+the example of obstacles in fluid flow given earlier, there are some 
+cells that are completely "landlocked": all of their neighbors are 
+obstacle cells. We don't need to do <em>any</em> computation on these 
+cells. To skip these cells, we do a bit of setup work whenever the user 
+paints new obstacles. We run a fragment program that examines the 
+neighbors of each fragment. The program draws only fragments that are 
+landlocked and discards all others using the <tt>discard</tt> keyword. (The <tt>discard</tt> keyword is available in Cg and GLSL. The HLSL equivalent is <tt>clip()</tt>).
+ The Cg code for this program is shown in Listing 34-1. The pseudocode 
+that follows in Listing 34-2 demonstrates how z-cull is set up and then 
+used to skip processing of landlocked cells.</p>
+
+
+
+<p>What happens in the code in these two listings is that the 
+preprocessing pass sets up a "mask" in the z-buffer where landlocked 
+cells have a depth of 0.0 and all other cells have a depth of 1.0. 
+Therefore, when we draw a quad at <em>z</em> = 0.5, the landlocked cells
+ will be "blocked" by the values of 0.0 in the z-buffer and will be 
+automatically culled by the GPU. If the obstacles are fairly large, then
+ we will save a lot of work by not processing these cells.</p>
+
+
+
+
+
+
+
+<h4>Example 34-1. Cg Code to Set Z-Depth Values for Z-Culling in Subsequent Passes</h4>
+
+<pre><strong><span style="color: rgb(0, 113, 188);">half</span></strong> obstacles(<strong><span style="color: rgb(0, 113, 188);">half2</span></strong> coords : <strong><span style="color: rgb(0, 113, 188);">WPOS</span></strong>,
+
+  <strong><span style="color: rgb(0, 113, 188);">uniform samplerRECT</span></strong> obstacleGrid) : <strong><span style="color: rgb(0, 113, 188);">COLOR</span></strong>
+
+{
+
+  <strong><span style="color: rgb(156, 172, 59);">// get neighboring boundary values (on or off)</span></strong>
+
+  <strong><span style="color: rgb(0, 113, 188);">half4</span></strong> bounds;
+
+  bounds.x = <strong><span style="color: rgb(0, 113, 188);">texRECT</span></strong>(obstacleGrid, coords - <strong><span style="color: rgb(0, 113, 188);">half2</span></strong>(1, 0)).x;
+
+  bounds.y = <strong><span style="color: rgb(0, 113, 188);">texRECT</span></strong>(obstacleGrid, coords + <strong><span style="color: rgb(0, 113, 188);">half2</span></strong>(1, 0)).x;
+
+  bounds.z = <strong><span style="color: rgb(0, 113, 188);">texRECT</span></strong>(obstacleGrid, coords - <strong><span style="color: rgb(0, 113, 188);">half2</span></strong>(0, 1)).x;
+
+  bounds.w = <strong><span style="color: rgb(0, 113, 188);">texRECT</span></strong>(obstacleGrid, coords + <strong><span style="color: rgb(0, 113, 188);">half2</span></strong>(0, 1)).x;
+
+
+
+  bounds.x = <strong><span style="color: rgb(0, 113, 188);">dot</span></strong>(bounds, (1).xxxx); <strong><span style="color: rgb(156, 172, 59);">// add them up</span></strong>
+
+
+
+  <strong><span style="color: rgb(156, 172, 59);">// discard cells that are not landlocked</span></strong>
+
+  <strong><span style="color: rgb(0, 113, 188);">if</span></strong> (bounds.x &lt; 4)
+
+    <strong><span style="color: rgb(0, 113, 188);">discard</span></strong>;
+
+
+
+  <strong><span style="color: rgb(0, 113, 188);">return</span></strong> 0;
+
+}</pre>
+
+
+
+
+
+
+
+
+
+<h4>Example 34-2. Application Pseudocode</h4>
+
+
+
+<p>
+
+   <em>We set z values in the first pass. In the second pass, we execute a fragment program at pixels where the z test passes.</em>
+
+</p>
+
+<pre><strong><span style="color: rgb(156, 172, 59);">// Application Code--Preprocess pass</span></strong>
+
+ClearZBuffer(1.0);
+
+Enable(DEPTH_TEST);
+
+DepthFunc(LESS);
+
+BindFragmentProgram("obstacles");
+
+DrawQuad(Z=0.0);
+
+<strong><span style="color: rgb(156, 172, 59);">// Application code--Passes in which landlocked cells are to be skipped</span></strong>
+
+Enable(DEPTH_TEST);
+
+Disable(DEPTH_WRITE); <strong><span style="color: rgb(156, 172, 59);">// want to read depth, but not modify it</span></strong>
+
+DepthFunc(LESS);
+
+<strong><span style="color: rgb(156, 172, 59);">// bind normal fragment program for each pass</span></strong>
+
+DrawQuad(Z=0.5);</pre>
+
+
+
+
+
+<p>One caveat with this technique is that z-culling is often performed 
+by the GPU at a coarser resolution than a per-fragment basis. The GPU 
+will skip shading operations only if all the fragments in a small 
+contiguous region of the frame buffer fail the depth test. The exact 
+size of this region varies from GPU to GPU, but in general, z-cull will 
+provide a performance improvement only if your branches have some 
+locality.</p>
+
+
+
+<p>To illustrate this, we can compare the performance of z-cull with a 
+random Boolean condition versus a Boolean condition with high spatial 
+locality. For the random Boolean case, we fill a texture with random 
+values. For the Boolean with high spatial locality, we simply set a 
+rectangular region to a constant Boolean value.</p>
+
+
+
+<p>As you can see from Figure 34-1, z-cull is most effective if there is
+ plenty of locality in the branch. The good news is that this locality 
+is naturally present if the probability of taking the branch is either 
+very low (that is, if very few fragments pass the depth test) or very 
+high. If locality is not present, z-cull is not much better than 
+predication.</p>
+
+
+
+<div class="figure" align="center">
+
+   
+
+      <img src="gpugems2_chapter34_files/34_flow_control_01.jpg" alt="34_flow_control_01.jpg">
+
+   
+
+   <p>
+
+      Figure 34-1 The Costs of Different Types of Branches When Using Z-Cull</p>
+
+</div>
+
+
+
+<p>Note, however, that z-cull is very different from branching inside a 
+fragment program. Z-cull prevents the fragment program from ever 
+executing. Therefore, z-cull is a powerful method for skipping lots of 
+unnecessary work based on a static, preevaluated condition. To do the 
+same with fragment program branching would require the program to be 
+executed, the condition to be evaluated, and the program to exit early. 
+All of this requires more processor cycles than skipping the fragment 
+program altogether.</p>
+
+
+
+
+
+
+
+<h4>34.2.4 Branching Instructions</h4>
+
+
+
+<p>The first GPUs to support fragment branching instructions are the 
+NVIDIA GeForce 6 Series. These instructions are available with both the 
+Microsoft DirectX Pixel Shader 3.0 instruction set and the OpenGL <tt>NV_fragment_program2</tt>
+ extension. As more GPUs support branch instructions, using predication 
+for branching should no longer be necessary. Note, however, that the 
+locality issues that affect early z-cull also apply to these branch 
+instructions. GPUs execute fragment programs on groups of fragments in 
+parallel, where each group can execute only one branch. Where this is 
+not possible, the GPU will effectively fall back to predication. Figure 
+34-2 shows the time versus probability test implemented using branch 
+instructions.</p>
+
+
+
+<div class="figure" align="center">
+
+   
+
+      <img src="gpugems2_chapter34_files/34_flow_control_02.jpg" alt="34_flow_control_02.jpg">
+
+   
+
+   <p>
+
+      Figure 34-2 The Costs of Different Types of Branches with Pixel Shader 3.0</p>
+
+</div>
+
+
+
+<p>As you can see, the same spatial locality caveat applies to branching
+ efficiency. However, as with z-cull, if the branch has either a very 
+low or a very high probability, branching instructions are quite 
+effective.</p>
+
+
+
+
+
+
+
+<h4>34.2.5 Choosing a Branching Mechanism</h4>
+
+
+
+<p>Choosing an effective branching mechanism for your program depends 
+primarily on the amount of code inside a branch and the amount of state 
+present. For short branches—two to four operations—predication is 
+preferred, because the overhead for either z-cull or the branching 
+instructions can negate any benefits. For branches that are embedded in 
+larger programs, consider using the branching instructions rather than 
+z-cull. Even though the branching instructions are more sensitive to 
+locality issues, using z-cull requires you to save all program state, 
+execute the branch in a separate pass, and restore the state of the 
+program to continue. For large programs, these saves and restores can 
+make z-culling inefficient. However, if we can effectively isolate the 
+branch component of our program, z-cull can provide the best 
+performance.</p>
+
+
+
+<h2>34.3 Data-Dependent Looping with Occlusion Queries</h2>
+
+
+
+<p>Another GPU feature designed to avoid drawing what is not visible is the hardware <em>occlusion query</em>.
+ This feature enables you to query the number of pixels updated by a 
+rendering call. Such queries are pipelined, which means that they 
+provide a way to get a limited amount of data (an integer count) back 
+from the GPU without stalling the pipeline, as occurs when we read back 
+actual pixels. Because in GPGPU we are almost always drawing quads with 
+known pixel coverage, we can use occlusion query with the <tt>discard</tt>
+ keyword discussed in Section 34.2.3 to get a count of fragments updated
+ and discarded. This allows us to implement global decisions controlled 
+by the CPU based on GPU processing.</p>
+
+
+
+<p>Suppose we have a computation that needs to proceed iteratively on 
+elements of a stream until all elements satisfy a termination criterion.
+ To implement this on the GPU, we write a fragment program that 
+implements the computation and one that tests the termination criterion.
+ The latter program <tt>discard</tt>s fragments that satisfy the 
+termination criterion. We then write a loop on the CPU like the 
+following pseudocode, which will execute until all stream elements 
+satisfy the termination criteria.</p>
+
+
+
+<pre><strong><span style="color: rgb(0, 113, 188);">int</span></strong> numberNotTerminated = streamSize;
+
+<strong><span style="color: rgb(0, 113, 188);">while</span></strong> ( numberNotTerminated &gt; 0 ) {
+
+  gpuRunProgram(computationProgram);
+
+
+
+  gpuBeginQuery(myQuery);
+
+  gpuRunProgram(terminationProgram);
+
+  gpuEndQuery(myQuery);
+
+
+
+  numberNotTerminated = gpuGetQueryResults(myQuery);
+
+}</pre>
+
+
+
+<p>This technique can also be used for subdivision algorithms, such as 
+the adaptive radiosity solution in Chapter 39 of this book, "Global 
+Illumination Using Progressive Refinement Radiosity."</p>
+
+
+
+
+
+<h2>34.4 Conclusion</h2>
+
+
+
+<p>With their support for branching at the fragment processor level, the
+ latest generation of GPUs makes branching much easier to use in GPGPU 
+programs. Higher-level language constructs such as <tt>if</tt>, <tt>for</tt>, and <tt>while</tt>
+ compile directly to GPU assembly instructions, freeing the developer 
+from having to use more complex strategies such as z-cull and occlusion 
+queries, as is necessary on earlier GPUs.</p>
+
+
+
+<p>Nevertheless, there is still a penalty for incoherent branching on 
+GPUs. Employing techniques based on precomputation and moving 
+computation higher up the pipeline—either to the vertex processing unit 
+or to the CPU, as described in Section 34.2.2—will continue to be a 
+useful GPGPU strategy.</p>
+
+
+
+
+
+<script type="text/javascript">
+
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+
+</script><script src="gpugems2_chapter34_files/ga.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+var pageTracker = _gat._getTracker("UA-4670658-1");
+
+pageTracker._initData();
+
+pageTracker._trackPageview();
+
+</script>
+
+
+
+
+
+
+		
+
+		
+
+<hr>
+
+<h4>Copyright</h4>
+
+
+
+<p>Many of the designations used by manufacturers and sellers to 
+distinguish their products are claimed as trademarks. Where those 
+designations appear in this book, and Addison-Wesley was aware of a 
+trademark claim, the designations have been printed with initial capital
+ letters or in all capitals.</p>
+
+<p>The authors and publisher have taken care in the preparation of this 
+book, but make no expressed or implied warranty of any kind and assume 
+no responsibility for errors or omissions. No liability is assumed for 
+incidental or consequential damages in connection with or arising out of
+ the use of the information or programs contained herein.</p>
+
+<p>NVIDIA makes no warranty or representation that the techniques 
+described herein are free from any Intellectual Property claims. The 
+reader assumes all risk of any such claims based on his or her use of 
+these techniques.</p>
+
+<p>The publisher offers excellent discounts on this book when ordered in
+ quantity for bulk purchases or special sales, which may include 
+electronic versions and/or custom covers and content particular to your 
+business, training goals, marketing focus, and branding interests. For 
+more information, please contact:</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;U.S.&nbsp;Corporate&nbsp;and&nbsp;Government&nbsp;Sales<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(800)&nbsp;382-3419<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="mailto:corpsales@pearsontechgroup.com">corpsales@pearsontechgroup.com</a></p>
+
+<p>For sales outside of the U.S., please contact:</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;International&nbsp;Sales<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="mailto:international@pearsoned.com">international@pearsoned.com</a></p>
+
+<p>Visit Addison-Wesley on the Web: <a href="http://www.awprofessional.com/">www.awprofessional.com</a></p>
+
+<p><em>Library of Congress Cataloging-in-Publication Data</em></p>
+
+<p>GPU&nbsp;gems&nbsp;2&nbsp;:&nbsp;programming&nbsp;techniques&nbsp;for&nbsp;high-performance&nbsp;graphics&nbsp;and&nbsp;general-purpose<br>computation&nbsp;/&nbsp;edited&nbsp;by&nbsp;Matt&nbsp;Pharr&nbsp;;&nbsp;Randima&nbsp;Fernando,&nbsp;series&nbsp;editor.<br>&nbsp;&nbsp;&nbsp;&nbsp;p.&nbsp;cm.<br>&nbsp;&nbsp;Includes&nbsp;bibliographical&nbsp;references&nbsp;and&nbsp;index.<br>&nbsp;&nbsp;ISBN&nbsp;0-321-33559-7&nbsp;(hardcover&nbsp;:&nbsp;alk.&nbsp;paper)<br>&nbsp;&nbsp;1.&nbsp;Computer&nbsp;graphics.&nbsp;2.&nbsp;Real-time&nbsp;programming.&nbsp;I.&nbsp;Pharr,&nbsp;Matt.&nbsp;II.&nbsp;Fernando,&nbsp;Randima.<br><br>&nbsp;&nbsp;T385.G688&nbsp;2005<br>&nbsp;&nbsp;006.66—dc22<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2004030181</p>
+
+<p>GeForce™ and NVIDIA Quadro® are trademarks or registered trademarks of NVIDIA Corporation.</p>
+
+<p>Nalu, Timbury, and Clear Sailing images © 2004 NVIDIA Corporation.</p>
+
+<p>mental images and mental ray are trademarks or registered trademarks of mental images, GmbH.</p>
+
+<p>Copyright © 2005 by NVIDIA Corporation.</p>
+
+<p>All rights reserved. No part of this publication may be reproduced, 
+stored in a retrieval system, or transmitted, in any form, or by any 
+means, electronic, mechanical, photocopying, recording, or otherwise, 
+without the prior consent of the publisher. Printed in the United States
+ of America. Published simultaneously in Canada.</p>
+
+<p>For information on obtaining permission for use of material from this work, please submit a written request to:</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Pearson&nbsp;Education,&nbsp;Inc.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rights&nbsp;and&nbsp;Contracts&nbsp;Department<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;One&nbsp;Lake&nbsp;Street<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Upper&nbsp;Saddle&nbsp;River,&nbsp;NJ&nbsp;07458</p>
+
+<p>Text printed in the United States on recycled paper at Quebecor World Taunton in Taunton, Massachusetts.</p>
+
+<p>Second printing, April 2005</p>
+
+<h2>Dedication</h2>
+
+<blockquote>
+
+   <p><em>To everyone striving to make today's best computer graphics look primitive tomorrow</em></p>
+
+</blockquote>
+
+
+
+<!-- <div align="right" style=" color:#999999;">Last Update: 09:24 09/22/2008</div> -->
+
+  </div>
+
+  
+
+  <div id="left" class="column">		
+
+    <a href="http://developer.nvidia.com/">Developer Site Homepage</a><br><br>
+
+		<a href="http://news.developer.nvidia.com/">Developer News Homepage</a><br><br>
+
+
+
+		<img src="gpugems2_chapter34_files/divider.htm" alt="" align="" border="0"><br><br>
+
+
+
+		<a href="https://nvdeveloper.nvidia.com/">Developer Login</a><br><br>
+
+		<a href="http://developer.nvidia.com/page/registered_developer_program.html">Become a<br>Registered Developer</a><br><br>
+
+
+
+		<img src="gpugems2_chapter34_files/divider.htm" alt="" align="" border="0"><br><br>
+
+
+
+		<a href="http://developer.nvidia.com/page/tools.html">Developer Tools</a><br><br>
+
+		<a href="http://developer.nvidia.com/page/documentation.html">Documentation</a><br><br>
+
+		<a href="http://developer.nvidia.com/page/directx.html">DirectX</a><br><br>
+
+		<a href="http://developer.nvidia.com/page/opengl.html">OpenGL</a><br><br>
+
+		<a href="http://developer.nvidia.com/object/cuda.html">GPU Computing</a><br><br>
+
+		<a href="http://developer.nvidia.com/page/handheld.html">Handheld</a><br><br>
+
+		<a href="http://developer.nvidia.com/page/event_calendar.html">Events Calendar</a><br><br>
+
+
+
+		<img src="gpugems2_chapter34_files/divider.htm" alt="" align="" border="0"><br><br>
+
+
+
+		<a href="http://developer.nvidia.com/object/newsletter_signup.html">Newsletter Sign-Up</a><br><br>
+
+		<a href="http://developer.nvidia.com/object/downloading_drivers.html">Drivers</a><br><br>
+
+		<a href="http://developer.nvidia.com/page/jobs.html">Jobs (1)</a><br><br>
+
+		<a href="http://developer.nvidia.com/object/contact_us.html">Contact</a><br><br>
+
+		<a href="http://developer.nvidia.com/object/legal_info.html">Legal Information</a><br><br>
+
+
+
+		<img src="gpugems2_chapter34_files/divider.htm" alt="" align="" border="0"><br><br>
+
+		<a href="http://surveys.nvidia.com/index.jsp?pi=c1655cd3f4d0fb4bfdee853f141f9a75">Site Feedback</a>		
+
+	</div>
+
+	
+
+  <div id="right" class="column"><ul><li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_frontmatter.html">Preface, Foreword, and Contributors</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_inside_back_cover.html">Inside Back Cover</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_inside_front_cover.html">Inside Front Cover</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_part01.html"><i>Part I: Geometric Complexity</i></a></li>
+<ul>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter01.html">Chapter 1. Toward Photorealism in Virtual Botany</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter02.html">Chapter 2. Terrain Rendering Using GPU-Based Geometry Clipmaps</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter03.html">Chapter 3. Inside Geometry Instancing</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter04.html">Chapter 4. Segment Buffering</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter05.html">Chapter 5. Optimizing Resource Management with Multistreaming</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter06.html">Chapter 6. Hardware Occlusion Queries Made Useful</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter07.html">Chapter 7. Adaptive Tessellation of Subdivision Surfaces with Displacement Mapping</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter08.html">Chapter 8. Per-Pixel Displacement Mapping with Distance Functions</a></li>
+</ul><li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_part02.html"><i>Part II: Shading, Lighting, and Shadows</i></a></li>
+<ul>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter09.html">Chapter 9. Deferred Shading in S.T.A.L.K.E.R.</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter10.html">Chapter 10. Real-Time Computation of Dynamic Irradiance Environment Maps</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter11.html">Chapter 11. Approximate Bidirectional Texture Functions</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter12.html">Chapter 12. Tile-Based Texture Mapping</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter13.html">Chapter 13. Implementing the mental images Phenomena Renderer on the GPU</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter14.html">Chapter 14. Dynamic Ambient Occlusion and Indirect Lighting</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter15.html">Chapter 15. Blueprint Rendering and "Sketchy Drawings"</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter16.html">Chapter 16. Accurate Atmospheric Scattering</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter17.html">Chapter 17. Efficient Soft-Edged Shadows Using Pixel Shader Branching</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter18.html">Chapter 18. Using Vertex Texture Displacement for Realistic Water Rendering</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter19.html">Chapter 19. Generic Refraction Simulation</a></li>
+</ul><li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_part03.html"><i>Part III: High-Quality Rendering</i></a></li>
+<ul>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter20.html">Chapter 20. Fast Third-Order Texture Filtering</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter21.html">Chapter 21. High-Quality Antialiased Rasterization</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter22.html">Chapter 22. Fast Prefiltered Lines</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter23.html">Chapter 23. Hair Animation and Rendering in the Nalu Demo</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter24.html">Chapter 24. Using Lookup Tables to Accelerate Color Transformations</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter25.html">Chapter 25. GPU Image Processing in Apple's Motion</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter26.html">Chapter 26. Implementing Improved Perlin Noise</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter27.html">Chapter 27. Advanced High-Quality Filtering</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter28.html">Chapter 28. Mipmap-Level Measurement</a></li>
+</ul><li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_part04.html"><i>Part IV: General-Purpose Computation on GPUS: A Primer</i></a></li>
+<ul>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter29.html">Chapter 29. Streaming Architectures and Technology Trends</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter30.html">Chapter 30. The GeForce 6 Series GPU Architecture</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter31.html">Chapter 31. Mapping Computational Concepts to GPUs</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter32.html">Chapter 32. Taking the Plunge into GPU Computing</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter33.html">Chapter 33. Implementing Efficient Parallel Data Structures on GPUs</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter34.html"><font color="#45b900;"><b><i>Chapter 34. GPU Flow-Control Idioms</i></b></font></a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter35.html">Chapter 35. GPU Program Optimization</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter36.html">Chapter 36. Stream Reduction Operations for GPGPU Applications</a></li>
+</ul><li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_part05.html"><i>Part V: Image-Oriented Computing</i></a></li>
+<ul>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter37.html">Chapter 37. Octree Textures on the GPU</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter38.html">Chapter 38. High-Quality Global Illumination Rendering Using Rasterization</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter39.html">Chapter 39. Global Illumination Using Progressive Refinement Radiosity</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter40.html">Chapter 40. Computer Vision on the GPU</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter41.html">Chapter 41. Deferred Filtering: Rendering from Difficult Data Formats</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter42.html">Chapter 42. Conservative Rasterization</a></li>
+</ul><li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_part06.html"><i>Part VI: Simulation and Numerical Algorithms</i></a></li>
+<ul>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter43.html">Chapter 43. GPU Computing for Protein Structure Prediction</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter44.html">Chapter 44. A GPU Framework for Solving Systems of Linear Equations</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter45.html">Chapter 45. Options Pricing on the GPU</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter46.html">Chapter 46. Improved GPU Sorting</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter47.html">Chapter 47. Flow Simulation with Complex Boundaries</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter48.html">Chapter 48. Medical Image Reconstruction with the FFT</a></li>
+</ul>
+</ul></div>
+
+</div>
+
+
+
+<div id="footer"></div>
+
+
+
+
+
+<!--WEBSIDESTORY CODE HBX1.0 (Universal)-->
+
+<!--COPYRIGHT 1997-2005 WEBSIDESTORY,INC. ALL RIGHTS RESERVED. U.S.PATENT No. 6,393,479B1. MORE INFO:http://websidestory.com/privacy-->
+
+<script language="javascript">
+
+var _hbEC=0,_hbE=new Array;function _hbEvent(a,b){b=_hbE[_hbEC++]=new Object();b._N=a;b._C=0;return b;}
+
+var hbx=_hbEvent("pv");hbx.vpc="HBX0100u";hbx.gn="a.nvidia.com";
+
+hbx.acct="DM55061879AA96EN3";//developer
+
+hbx.pn="PUT+PAGE+NAME+HERE";
+
+hbx.mlc="CONTENT+CATEGORY";
+
+hbx.pndef="home.html";
+
+hbx.ctdef="full";
+
+hbx.lt="auto";
+
+hbx.dlf=".run,.8bi,.asx,.bat,.cg,.chm,.cpp,.db,.dds,.dll,.dsp,.dsw,.fp,.fx,.fxcomposer,.fxproj,.h,.hdr,.hpp,.ico,.img,.inf,.ini,.key,.lib,.lst,.msi,.ncb,.opt,.P3D,.plg,.exr,.rc,.res,.sh,.sln,.spc,.str,.tga,.txt,.vcproj,.xml";
+
+</script><script language="javascript1.1" defer="defer" src="gpugems2_chapter34_files/hbx.htm"></script>
+
+<!--END WEBSIDESTORY CODE-->
+
+
+
+
+
+
+</body></html>
+<!-- generated html end -->
+<!-- Copyright info for The Cg Tutorial -->

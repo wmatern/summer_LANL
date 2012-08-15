@@ -1,0 +1,2417 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+<html><head>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+	<title>GPU Gems - Chapter 33. Implementing Efficient Parallel Data Structures on GPUs</title>
+
+	<meta name="keywords" content="GPU GPGPU NVIDIA OpenGL Open_GL DirectX DX8 DX9 DX10 texture texture_mapping texturemap texture_map shading shader shaders realtime real_time CAD highperformancecomputing hpc gpu_compute tesla quadroplex geforce quadro hair skin cloth motion_blur dof depth_of_field anisotropic image_processing filtering filters volume volume_rendering financial">
+
+	<link type="image/x-icon" href="http://www.nvidia.com/content/images/NVSphere.ico" rel="shortcut icon">
+
+  <!-- <link rel="stylesheet" href="books.css" type="text/css" />	 -->
+
+
+
+<style type="text/css">
+
+body {
+
+  min-width: 700px;      /* 2x LC width + RC width */
+
+  
+
+  font-family:Verdana, Geneva, Arial, Helvetica, Sans Serif;
+
+  font-size: 11px;
+
+  background-image:url('http://developer.nvidia.com/docs/TEMPLATE/423/developers_1px_bg_alt2.jpg');
+
+  background-repeat: repeat-x;
+
+  margin-left:5px;
+
+  margin-top:0px;
+
+}
+
+#container {
+
+  padding-top:55px;
+
+  padding-left: 200px;   /* LC width */
+
+  padding-right: 300px;  /* RC width */  
+
+}
+
+#container .column {
+
+  position: relative;
+
+  float: left;
+
+}
+
+#center {
+
+  width: 100%;
+
+  padding: 3px;
+
+  background-color: #FFFFFF;
+
+  border: medium solid #cccccc;
+
+  border-width: 1px;
+
+  
+
+/*  borderColor: #dfdfe7;
+
+  borderColorLight: #e9eaed; */
+
+}
+
+#left {
+
+  width: 200px;          /* LC width */
+
+  right: 200px;          /* LC width */  
+
+  margin-left: -100%;
+
+}
+
+
+
+#container > #left {
+
+  left: -200px;
+
+  margin-left: expression(document.all.center.offsetWidth * -1);
+
+}
+
+
+
+
+
+#right {
+
+  width: 300px;          /* RC width */
+
+  margin-right: -300px;  /* RC width */  
+
+}
+
+#footer {
+
+  clear: both;
+
+}
+
+
+
+#header {
+
+height:80px;
+
+background: transparent url(dev_site_header.jpg) no-repeat fixed top left;
+
+clear: both;
+
+}
+
+
+
+/*** IE6 Fix ***/
+
+* html #left {
+
+  left: 315px;           /* RC width */
+
+}
+
+
+
+/* Original Holy Grail IE6 hack to stop the negative margin pulling the left column too far to the left, incorporating the 'left column disappearing hack' + the IE7 javascript fix */
+
+#container > #leftcolumn {
+
+  left: -100px;             /* Negative of (LC fullwidth + CC padding) = width for all browers other than IE7 */
+
+  margin-left: expression(
+
+  document.all.center.offsetWidth * -1 +
+
+  parseFloat(document.all.center.currentStyle.paddingLeft) +
+
+  parseFloat(document.all.left.currentStyle.paddingLeft) +
+
+  parseFloat(document.all.left.currentStyle.paddingRight)
+
+  ); /* Fix for IE7 */
+
+}
+
+
+
+
+
+
+
+#searchbar {
+
+position: absolute;
+
+top: 25px;
+
+right:200px;
+
+}
+
+	
+
+	
+
+A { 
+
+text-decoration:none;
+
+/* color: #008000; */
+
+/* green color: #76b900; */
+
+/*font-weight:bold; */
+
+color: #5B8C00;
+
+}
+
+
+
+A:hover { 
+
+text-decoration:underline;
+
+color: #000000;
+
+}
+
+
+
+A:visited { 
+
+color: #5B8C00;
+
+}	
+
+
+
+input.searchbox {
+
+font-family: Arial, Helvetica, sans-serif;
+
+font-size: 11px;
+
+color: #666666;
+
+text-indent: 3px;
+
+}
+
+
+
+H1 { 
+
+font-size:15px;
+
+color: #000000;
+
+font-weight:bold;
+
+}
+
+H2 { 
+
+font-size:14px;
+
+color: #000000;
+
+font-weight:bold;
+
+}
+
+H3 { 
+
+font-size:14px;
+
+color: #000080;
+
+font-weight:bold;
+
+}
+
+H4 { 
+
+font-size:12px;
+
+color: #000000;
+
+font-weight:bold;
+
+}
+
+H5 { 
+
+font-size:12px;
+
+color: #000080;
+
+font-weight:bold;
+
+}
+
+H6 { 
+
+font-size:10px;
+
+color: #000000;
+
+font-weight:bold;
+
+}
+
+H6 { 
+
+font-size:10px;
+
+color: #000080;
+
+font-weight:bold;
+
+}
+
+
+
+li.comingsoon {
+
+font-size:11px;
+
+color: #cccccc;
+
+}
+
+
+
+</style>
+
+</head><body>
+
+
+
+
+
+<div id="header">
+
+</div>
+
+
+
+<div id="searchbar">
+
+
+
+<form method="get" action="http://search.developer.nvidia.com/" name="search">
+
+
+
+<input style="font-size:11px;color: #666666;text-indent: 3px;" name="q" size="20" maxlength="50" onfocus="javascript:document.search.q.value = '';" value="Search" type="text">
+
+
+
+</form>
+
+
+
+</div>
+
+
+
+
+
+<div id="container">
+
+  <div id="center" class="column">
+
+		<a href="http://developer.nvidia.com/object/gpu_gems_2_home.html"><img src="gpugems2_chapter33_files/GPU_Gems_2.jpg" align="left" border="0" hspace="5"> <h1>GPU Gems 2</h1></a>
+
+		<b>GPU Gems 2</b> is now available, right here, online. You can <a href="http://www.informit.com/promotion/136275">purchase a beautifully printed version of this book</a>, and others in the series, at a 30% discount courtesy of InformIT and Addison-Wesley. 
+
+<br><br>
+
+
+
+Please visit our <a href="http://developer.nvidia.com/object/all_documents.html">Recent Documents</a> page to see all the latest whitepapers and conference presentations that can help you with your projects.	
+
+		
+
+		
+
+		<br><br><br clear="ALL">
+
+		<hr>
+
+
+
+
+	<title>Chapter 33. Implementing Efficient Parallel Data Structures on GPUs</title>
+
+	<!-- Coding by Eric S. Miller (eric -dot- miller -at- pearson -dot- com) -->
+
+
+
+
+
+
+
+
+
+<h1>Chapter 33. Implementing Efficient Parallel Data Structures on GPUs</h1>
+
+
+
+
+
+
+
+<p>
+
+   <em>Aaron&nbsp;Lefohn</em>
+
+   <br>
+
+   <em>University&nbsp;of&nbsp;California,&nbsp;Davis</em>
+
+</p>
+
+
+
+<p>
+
+   <em>Joe&nbsp;Kniss</em>
+
+   <br>
+
+   <em>University&nbsp;of&nbsp;Utah</em>
+
+</p>
+
+
+
+<p>
+
+   <em>John&nbsp;Owens</em>
+
+   <br>
+
+   <em>University&nbsp;of&nbsp;California,&nbsp;Davis</em>
+
+</p>
+
+
+
+<p>Modern GPUs, for the first time in computing history, put a 
+data-parallel, streaming computing platform in nearly every desktop and 
+notebook computer. A number of recent academic research papers—as well 
+as other chapters in this book—demonstrate that these streaming 
+processors are capable of accelerating a much broader scope of 
+applications than the real-time rendering applications for which they 
+were originally designed. Leveraging this computational power, however, 
+requires using a fundamentally different programming model that is 
+foreign to many programmers. This chapter seeks to demystify one of the 
+most fundamental differences between CPU and GPU programming: the memory
+ model. Unlike traditional CPU-based programs, GPU-based programs have a
+ number of limitations on when, where, and how memory can be accessed. 
+This chapter gives an overview of the GPU memory model and explains how 
+fundamental data structures such as multidimensional arrays, structures,
+ lists, and sparse arrays are expressed in this data-parallel 
+programming model.</p>
+
+
+
+
+
+
+
+
+
+
+
+<h2>33.1 Programming with Streams</h2>
+
+
+
+<p>Modern graphics processors are now capable of accelerating much more 
+than real-time computer graphics. Recent work in the emerging field of 
+general-purpose computation on graphics processing units (GPGPU) has 
+shown that GPUs are capable of accelerating applications as varied as 
+fluid dynamics, advanced image processing, photorealistic rendering, and
+ even computational chemistry and biology (Buck et al. 2004, Harris et 
+al. 2004). The key to using the GPU for purposes other than real-time 
+rendering is to view it as a <em>streaming</em>, <em>data-parallel</em> 
+computer (see Chapter 29 in this book, "Streaming Architectures and 
+Technology Trends," as well as Dally et al. 2004). The way in which we 
+structure computation and access memory in GPU programs is greatly 
+influenced by this stream computation model. As such, we first give a 
+brief overview of this model before discussing GPU-based data 
+structures.</p>
+
+
+
+<p>Streaming processors such as GPUs are programmed in a fundamentally 
+different way than serial processors like today's CPUs. Most programmers
+ are familiar with a programming model in which they can write to any 
+location in memory at any point in their program. When programming a 
+streaming processor, in contrast, we access memory in a much more 
+structured manner. In the stream model, programs are expressed as series
+ of operations on data streams, as shown in Figure 33-1. The elements in
+ a <em>stream</em> (that is, an ordered array of data) are processed by the instructions in a <em>kernel</em> (that is, a small program). A kernel operates on each element of a stream and writes the results to an output stream.</p>
+
+
+
+<div class="figure" align="center">
+
+   
+
+      <img src="gpugems2_chapter33_files/33_idioms_01.jpg" alt="33_idioms_01.jpg">
+
+   
+
+   <p>
+
+      Figure 33-1 Stream Program as Data-Dependency Graph</p>
+
+</div>
+
+
+
+<p>The stream programming model restrictions allow GPUs to execute 
+kernels in parallel and therefore process many data elements 
+simultaneously. This <em>data parallelism</em> is made possible by 
+ensuring that the computation on one stream element cannot affect the 
+computation on another element in the same stream. Consequently, the 
+only values that can be used in the computation of a kernel are the 
+inputs to that kernel and global memory reads. In addition, GPUs require
+ that the outputs of kernels be independent: kernels cannot perform 
+random writes into global memory (in other words, they may write only to
+ a single stream element position of the output stream). The data 
+parallelism afforded by this model is fundamental to the speedup offered
+ by GPUs over serial processors.</p>
+
+
+
+<p>Following are two sample snippets of code showing how to transform a 
+serial program into a data-parallel stream program. The first sample 
+shows a loop over an array (for example, the pixels in an image) for a 
+serial processor. Note that the instructions in the loop body are 
+specified for only a single data element at a time:</p>
+
+
+
+<pre>for (i = 0; i &lt; data.size(); i++)
+
+  loopBody(data[i])</pre>
+
+
+
+<p>The next sample shows the same section of code written in pseudocode for a streaming processor:</p>
+
+
+
+<pre>inDataStream  = specifyInputData()
+
+kernel        = loopBody()
+
+outDataStream = apply(kernel, inDataStream)</pre>
+
+
+
+<p>The first line specifies the data stream. In the case of our image 
+example, the stream is all of the pixels in the image. The second line 
+specifies the computational kernel, which is simply the body of the loop
+ from the first sample. Lastly, the third line applies the kernel to all
+ elements in the input stream and stores the results in an output 
+stream. In the image example, this operation would process the entire 
+image and produce a new, transformed image.</p>
+
+
+
+<p>Current GPU fragment processors have an additional programming 
+restriction beyond the streaming model described earlier. Current GPU 
+fragment processors are single-instruction, multiple-data (SIMD) 
+parallel processors. This has traditionally meant that all stream 
+elements (that is, fragments) must be processed by the same sequence of 
+instructions. Recent GPUs (those supporting Pixel Shader 3.0 [Microsoft 
+2004a]) relax this strict SIMD model slightly by allowing 
+variable-length loops and limited fragment-level branching. The hardware
+ remains fundamentally SIMD, however, and thus branching must be 
+spatially coherent between fragments for efficient execution (see 
+Chapter 34 in this book, "GPU Flow-Control Idioms," for more 
+information). Current vertex processors (Vertex Shader 3.0 [Microsoft 
+2004b]) are multiple-instruction, multiple-data (MIMD) machines, and can
+ therefore execute kernel branches more efficiently than fragment 
+processors. Although less flexible, the fragment processor's SIMD 
+architecture is highly efficient and cost-effective.</p>
+
+
+
+<p>Because nearly all GPGPU computations are currently performed with 
+the more powerful fragment processor, GPU-based data structures must fit
+ into the fragment processor's streaming, SIMD programming model. 
+Therefore, all data structures in this chapter are expressed as streams,
+ and the computations on these data structures are in the form of SIMD, 
+data-parallel kernels.</p>
+
+
+
+
+
+<h2>33.2 The GPU Memory Model</h2>
+
+
+
+<p>Graphics processors have their own memory hierarchy analogous to the 
+one used by serial microprocessors, including main memory, caches, and 
+registers. This memory hierarchy, however, is designed for accelerating 
+graphics operations that fit into the streaming programming model rather
+ than general, serial computation. Moreover, graphics APIs such as 
+OpenGL and Direct3D further limit the use of this memory to 
+graphics-specific primitives such as vertices, textures, and frame 
+buffers. This section gives an overview of the current memory model on 
+GPUs and how stream-based computation fits into it.</p>
+
+
+
+
+
+<h4>33.2.1 Memory Hierarchy</h4>
+
+
+
+<p>
+
+   Figure 33-2 shows the combined CPU and GPU memory hierarchy. The 
+GPU's memory system creates a branch in a modern computer's memory 
+hierarchy. The GPU, just like a CPU, has its own caches and registers to
+ accelerate data access during computation. GPUs, however, also have 
+their own main memory with its own address space—meaning that 
+programmers must explicitly copy data into GPU memory before beginning 
+program execution. This transfer has traditionally been a bottleneck for
+ many applications, but the advent of the new PCI Express bus standard 
+may make sharing memory between the CPU and GPU a more viable 
+possibility in the near future.</p>
+
+
+
+<div class="figure" align="center">
+
+   
+
+      <img src="gpugems2_chapter33_files/33_idioms_02.jpg" alt="33_idioms_02.jpg">
+
+   
+
+   <p>
+
+      Figure 33-2 The CPU and GPU Memory Hierarchies</p>
+
+</div>
+
+
+
+
+
+
+
+
+
+<h4>33.2.2 GPU Stream Types</h4>
+
+
+
+<p>Unlike CPU memory, GPU memory has a number of usage restrictions and 
+is accessible only via the abstractions of a graphics programming 
+interface. Each of these abstractions can be thought of as a different 
+stream type with its own set of access rules. The three types of streams
+ visible to the GPU programmer are vertex streams, frame-buffer streams,
+ and texture streams. A fourth stream type, fragment streams, is 
+produced and consumed entirely within the GPU. Figure 33-3 shows the 
+pipeline for a modern GPU, the three user-accessible streams, and the 
+points in the pipeline where each can be used.</p>
+
+
+
+<div class="figure" align="center">
+
+   
+
+      <img src="gpugems2_chapter33_files/33_idioms_03.jpg" alt="33_idioms_03.jpg">
+
+   
+
+   <p>
+
+      Figure 33-3 Streams in Modern GPUs</p>
+
+</div>
+
+
+
+
+
+<h4>Vertex Streams</h4>
+
+
+
+<p>Vertex streams are specified as vertex buffers via the graphics API. 
+These streams hold vertex positions and a variety of per-vertex 
+attributes. These attributes have traditionally been used for texture 
+coordinates, colors, normals, and so on, but they can be used for 
+arbitrary input stream data for vertex programs.</p>
+
+
+
+<p>Vertex programs are not allowed to randomly index into their input 
+vertices. Until recently, vertex streams could be updated only by 
+transferring data from the CPU to the GPU. The GPU was not allowed to 
+write to vertex streams. Recent API enhancements, however, have made it 
+possible for the GPU to write to vertex streams. This is accomplished by
+ either "copy-to-vertex-buffer" or "render-to-vertex-buffer." In the 
+former technique, rendering results are copied from a frame buffer to a 
+vertex buffer; in the latter technique, the rendering results are 
+written directly to a vertex buffer. The recent addition of GPU-writable
+ vertex streams enables GPUs, for the first time, to loop stream results
+ from the end to the beginning of the pipeline.</p>
+
+
+
+
+
+
+
+
+
+<h4>Fragment Streams</h4>
+
+
+
+<p>Fragment streams are generated by the rasterizer and consumed by the 
+fragment processor. They are the stream inputs to fragment programs, but
+ they are not directly accessible to programmers because they are 
+created and consumed entirely within the graphics processor. Fragment 
+stream values include all of the interpolated outputs from the vertex 
+processor: position, color, texture coordinates, and so on. As with 
+per-vertex stream attributes, the per-fragment values that have 
+traditionally been used for texture coordinates may now be used for any 
+stream value required by the fragment program.</p>
+
+
+
+<p>Fragment streams cannot be randomly accessed by fragment programs. 
+Permitting random access to the fragment stream would create a 
+dependency between fragment stream elements, thus breaking the 
+data-parallel guarantee of the programming model. If random access to 
+fragment streams is needed by algorithms, the stream must first be saved
+ to memory and converted to a texture stream.</p>
+
+
+
+
+
+
+
+<h4>Frame-Buffer Streams</h4>
+
+
+
+<p>Frame-buffer streams are written by the fragment processor. They have
+ traditionally been used to hold pixels for display to the screen. 
+Streaming GPU computation, however, uses frame buffers to hold the 
+results of intermediate computation stages. In addition, modern GPUs are
+ able to write to multiple frame-buffer surfaces (that is, multiple RGBA
+ buffers) simultaneously. Current GPUs can write up to 16 floating-point
+ scalar values per render pass (this value is expected to increase in 
+future hardware).</p>
+
+
+
+<p>Frame-buffer streams cannot be randomly accessed by either fragment 
+or vertex programs. They can, however, be directly read from or written 
+to by the CPU via the graphics API. Lastly, recent API enhancements have
+ begun to blur the distinction between frame buffers, vertex buffers, 
+and textures by allowing a render pass to be directly written to any of 
+these stream types.</p>
+
+
+
+
+
+
+
+<h4>Texture Streams</h4>
+
+
+
+<p>Textures are the only GPU memory that is randomly accessible by 
+fragment programs and, for Vertex Shader 3.0 GPUs, vertex programs. If 
+programmers need to randomly index into a vertex, fragment, or 
+frame-buffer stream, they must first convert it to a texture. Textures 
+can be read from and written to by either the CPU or the GPU. The GPU 
+writes to textures either by rendering directly to them instead of to a 
+frame buffer or by copying data from a frame buffer to texture memory.</p>
+
+
+
+<p>Textures are declared as 1D, 2D, or 3D streams and addressed with a 
+1D, 2D, or 3D address, respectively. A texture can also be declared as a
+ cube map, which can be treated as an array of six 2D textures.</p>
+
+
+
+
+
+
+
+
+
+
+
+<h4>33.2.3 GPU Kernel Memory Access</h4>
+
+
+
+<p>Vertex and fragment programs (kernels) are the workhorses of modern 
+GPUs. Vertex programs operate on vertex stream elements and send output 
+to the rasterizer. Fragment programs operate on fragment streams and 
+write output to frame buffers. The capabilities of these programs are 
+defined by the arithmetic operations they can perform and the memory 
+they are permitted to access. The variety of available arithmetic 
+operations permitted in GPU kernels is approaching those available on 
+CPUs, yet there are numerous memory access restrictions. As described 
+previously, many of these restrictions are in place to preserve the 
+parallelism required for GPUs to maintain their speed advantage. Other 
+restrictions, however, are artifacts of the evolving GPU architecture 
+and will almost certainly be relaxed in future generations.</p>
+
+
+
+<p>The following is a list of memory access rules for vertex and 
+fragment kernels on GPUs that support Pixel Shader 3.0 and Vertex Shader
+ 3.0 functionality (Microsoft 2004a, b):</p>
+
+
+
+<ul>
+
+   <li>No CPU main memory access; no disk access.</li>
+
+   <li>No GPU stack or heap.</li>
+
+   <li>Random reads from global texture memory.</li>
+
+   <li>Reads from constant registers.<dl>
+
+         <dd>- Vertex programs can use relative indexing of constant registers.</dd>
+
+      </dl>
+
+   </li>
+
+   <li>Reads/writes to temporary registers.<dl>
+
+         <dd>- Registers are local to the stream element being processed.</dd>
+
+         <dd>- No relative indexing of registers.</dd>
+
+      </dl>
+
+   </li>
+
+   <li>Streaming reads from stream input registers.<dl>
+
+         <dd>- Vertex kernels read from vertex streams.</dd>
+
+         <dd>- Fragment kernels read from fragment streams (rasterizer results).</dd>
+
+      </dl>
+
+   </li>
+
+   <li>Streaming writes (at end of kernel only).<dl>
+
+         <dd>
+
+            <p>- Write location is fixed by the position of the element in the stream.</p>
+
+            <p>
+
+               <em>Cannot write to computed address (that is, no scatter)</em>.</p>
+
+         </dd>
+
+         <dd>
+
+            <p>- Vertex kernels write to vertex output streams.</p>
+
+            <p>
+
+               <em>Can write up to 12 four-component floating-point values</em>.</p>
+
+         </dd>
+
+         <dd>
+
+            <p>- Fragment kernels write to frame-buffer streams.</p>
+
+            <p>
+
+               <em>Can write up to 4 four-component floating-point values</em>.</p>
+
+         </dd>
+
+      </dl>
+
+   </li>
+
+</ul>
+
+
+
+<p>An additional access pattern emerges from the preceding set of rules 
+and the stream types described in Section 33.2.2: pointer streams 
+(Purcell et al. 2002). Pointer streams arise out of the ability to use 
+any input stream as the address for a texture read. Figure 33-4 shows 
+that pointer streams are simply streams whose values are memory 
+addresses. If the pointer stream is read from a texture, this capability
+ is called <em>dependent texturing</em>.</p>
+
+
+
+<div class="figure" align="center">
+
+   
+
+      <img src="gpugems2_chapter33_files/33_idioms_04.jpg" alt="33_idioms_04.jpg">
+
+   
+
+   <p>
+
+      Figure 33-4 Implementing Pointer Streams with Textures</p>
+
+</div>
+
+
+
+<h2>33.3 GPU-Based Data Structures</h2>
+
+
+
+<p>While the previous sections have described the GPU and its 
+programming model with elegant abstractions, we now delve into the 
+details of real-world data structures on current GPUs. The abstractions 
+from Sections 33.1 and 33.2 continue to apply to the data structures 
+herein, but the architectural restrictions of current GPUs make the 
+real-world implementations slightly more complicated.</p>
+
+
+
+<p>We first describe implementations of basic structures: 
+multidimensional arrays and structures. We then move on to more advanced
+ structures in Sections 33.3.3 and 33.3.4: static and dynamic sparse 
+structures.</p>
+
+
+
+
+
+<h4>33.3.1 Multidimensional Arrays</h4>
+
+
+
+<p>Why include a section about multidimensional arrays if the GPU 
+already provides 1D, 2D, and 3D textures? There are two reasons. First, 
+current GPUs provide only 2D rasterization and 2D frame buffers. This 
+means the only kind of texture that can be easily updated is a 2D 
+texture, because it is a natural replacement for a 2D frame buffer.<sup>
+
+      <a href="http://http.developer.nvidia.com/GPUGems2/elementLinks/ch33fn01.html">[1]</a>
+
+   </sup> Second, textures currently have restrictions on their size in 
+each dimension. For example, current GPUs do not support 1D textures 
+with more than 4,096 elements. If GPUs could write to an N-D frame 
+buffer (where <em>N</em> = 1, 2, 3, . . .) with no size restrictions, this section would be trivial.</p>
+
+
+
+<p>Given these restrictions, 2D textures with nearest-neighbor filtering
+ are the substrate on which nearly all GPGPU-based data structures are 
+built.<sup>
+
+      <a href="http://http.developer.nvidia.com/GPUGems2/elementLinks/ch33fn02.html">[2]</a>
+
+   </sup> Note that until recently, the size of each texture dimension 
+was required to be a power of two, but this restriction is thankfully no
+ longer in place.</p>
+
+
+
+<p>All of the following examples use address translation to convert an 
+N-D array address into a 2D texture address. Although it is important to
+ minimize the cost of this address translation, remember that CPU-based 
+multidimensional arrays must also perform address translation to look up
+ values in the underlying 1D array. In fact, the GPU's 
+texture-addressing hardware actually helps make these translations very 
+efficient. Current GPUs do, however, suffer from one problem related to 
+these address translations: the limitations of floating-point 
+addressing. Chapter 32 of this book discusses important limitations and 
+errors associated with using floating-point rather than integer 
+addresses, and those problems apply to the techniques presented in this 
+section.</p>
+
+
+
+
+
+<h4>1D Arrays</h4>
+
+
+
+<p>One-dimensional arrays are represented by packing the data into a 2D 
+texture, as shown in Figure 33-5. Current GPUs can therefore represent 
+1D arrays containing up to 16,777,216 (4,096x4,096) elements.<sup>
+
+      <a href="http://http.developer.nvidia.com/GPUGems2/elementLinks/ch33fn03.html">[3]</a>
+
+   </sup> Each time this packed array is accessed from a fragment or 
+vertex program, the 1D address must be converted to a 2D texture 
+coordinate.</p>
+
+
+
+<div class="figure" align="center">
+
+   
+
+      <img src="gpugems2_chapter33_files/33_idioms_05.jpg" alt="33_idioms_05.jpg">
+
+   
+
+   <p>
+
+      Figure 33-5 1D Arrays Packed into 2D Arrays</p>
+
+</div>
+
+
+
+<p>Two versions of this address translation are shown in Cg syntax in 
+Listings 33-1 and 33-2. Listing 33-1 (Buck et al. 2004) shows code for 
+using <em>rectangle</em> textures, which use integer addresses and do not support repeat-tiling address modes. Note that <tt>CONV_CONST</tt>
+ is a constant based on the texture size and should be precomputed 
+rather than recomputed for each stream element. Section 33.4 describes 
+an elegant technique for computing values such as <tt>CONV_CONST</tt> with a feature of the Cg compiler called <em>program specialization</em>. With this optimization, Listing 33-1 compiles to three assembly instructions.</p>
+
+
+
+
+
+
+
+<h4>Example 33-1. 1D to 2D Address Translation for Integer-Addressed Textures</h4>
+
+<pre><strong><span style="color: rgb(0, 113, 188);">float2</span></strong> addrTranslation_1DtoRECT( <strong><span style="color: rgb(0, 113, 188);">float</span></strong> address1D, <strong><span style="color: rgb(0, 113, 188);">float2</span></strong> texSize )
+
+{
+
+  <strong><span style="color: rgb(156, 172, 59);">// Parameter explanation:</span></strong>
+
+  <strong><span style="color: rgb(156, 172, 59);">// - "address1D" is a 1D array index into an array of size N</span></strong>
+
+  <strong><span style="color: rgb(156, 172, 59);">// - "texSize" is size of RECT texture that stores the 1D array</span></strong>
+
+
+
+  <strong><span style="color: rgb(156, 172, 59);">// Step 1) Convert 1D address from [0,N] to [0,texSize.y]</span></strong>
+
+  <strong><span style="color: rgb(0, 113, 188);">float</span></strong> CONV_CONST = 1.0 / texSize.x;
+
+  <strong><span style="color: rgb(0, 113, 188);">float</span></strong> normAddr1D = address1D * CONV_CONST;
+
+
+
+  <strong><span style="color: rgb(156, 172, 59);">// Step 2) Convert the [0,texSize.y] 1D address to 2D.</span></strong>
+
+  <strong><span style="color: rgb(156, 172, 59);">// Performing Step 1 first allows us to efficiently compute the</span></strong>
+
+  <strong><span style="color: rgb(156, 172, 59);">// 2D address with "frac" and "floor" instead of modulus</span></strong>
+
+
+
+  <strong><span style="color: rgb(156, 172, 59);">// and divide. Note that the "floor" of the y-component is</span></strong>
+
+  <strong><span style="color: rgb(156, 172, 59);">// performed by the texture system.</span></strong>
+
+  <strong><span style="color: rgb(0, 113, 188);">float2</span></strong> address2D = <strong><span style="color: rgb(0, 113, 188);">float2</span></strong>( <strong><span style="color: rgb(0, 113, 188);">frac</span></strong>(normAddr1D) * texSize.x, normAddr1D );
+
+  <strong><span style="color: rgb(0, 113, 188);">return</span></strong> address2D;
+
+}</pre>
+
+
+
+
+
+<p>Listing 33-2 shows an address translation routine that can be used 
+with traditional 2D textures, which use normalized [0,1] addressing. If <tt>CONV_CONST</tt> is precomputed, this address translation takes two fragment assembly instructions. It may also be possible to eliminate the <tt>frac</tt> instruction from Listing 33-2 by using the repeating-tiled addressing mode (such as <tt>GL_REPEAT</tt>).
+ This reduces the conversion to a single assembly instruction. This 
+optimization may be problematic on some hardware and texture 
+configurations, however, so it should be carefully tested on your target
+ architecture.</p>
+
+
+
+
+
+
+
+<h4>2D Arrays</h4>
+
+
+
+<p>Two-dimensional arrays are represented simply as 2D textures. Their 
+maximum size is limited by the GPU driver. That limit for current GPUs 
+ranges from 2048x2048 to 4096x4096 depending on the display driver and 
+the GPU. These limits can be queried via the graphics API.</p>
+
+
+
+
+
+
+
+
+
+<h4>Example 33-2. 1D to 2D Address Translation for Normalized-Addressed Textures</h4>
+
+<pre><strong><span style="color: rgb(0, 113, 188);">float2</span></strong> addrTranslation_1Dto2D( <strong><span style="color: rgb(0, 113, 188);">float</span></strong> address1D, <strong><span style="color: rgb(0, 113, 188);">float2</span></strong> texSize )
+
+{
+
+  <strong><span style="color: rgb(156, 172, 59);">// Parameter explanation:</span></strong>
+
+  <strong><span style="color: rgb(156, 172, 59);">// - "address1D" is a 1D array index into an array of size N</span></strong>
+
+  <strong><span style="color: rgb(156, 172, 59);">// - "texSize" is size of 2D texture that stores the 1D array</span></strong>
+
+
+
+  <strong><span style="color: rgb(156, 172, 59);">// NOTE: Precompute CONV_CONST before running the kernel.</span></strong>
+
+  <strong><span style="color: rgb(0, 113, 188);">float2</span></strong> CONV_CONST = <strong><span style="color: rgb(0, 113, 188);">float2</span></strong>( 1.0 / texSize.x,
+
+                              1.0 / (texSize.x * texSize.y );
+
+
+
+  <strong><span style="color: rgb(156, 172, 59);">// Return a normalized 2D address (with values in [0,1])</span></strong>
+
+  <strong><span style="color: rgb(0, 113, 188);">float2</span></strong> normAddr2D = address1D * CONV_CONST;
+
+  <strong><span style="color: rgb(0, 113, 188);">float2</span></strong> address2D = <strong><span style="color: rgb(0, 113, 188);">float2</span></strong>( <strong><span style="color: rgb(0, 113, 188);">frac</span></strong>(normAddr2D.x), normAddr2D.y );
+
+  <strong><span style="color: rgb(0, 113, 188);">return</span></strong> address2D;
+
+}</pre>
+
+
+
+
+
+
+
+
+
+<h4>3D Arrays</h4>
+
+
+
+<p>Three-dimensional arrays may be stored in one of three ways: in a 3D 
+texture, with each slice stored in a separate 2D texture, or packed into
+ a single 2D texture (Harris et al. 2003, Lefohn et al. 2003, Goodnight 
+et al. 2003). Each of these techniques has pros and cons that affect the
+ best representation for an application.</p>
+
+
+
+<p>The simplest approach, using a 3D texture, has two distinct 
+advantages. The first is that no address translation computation is 
+required to access the memory. The second advantage is that the GPU's 
+native trilinear filtering may be used to easily create high-quality 
+volume renderings of the data. A disadvantage is that GPUs can update at
+ most only four slices of the volume per render pass—thus requiring many
+ passes to write to the entire array.</p>
+
+
+
+<p>The second solution is to store each slice of the 3D texture in a 
+separate 2D texture, as shown in Figure 33-6. The advantages are that, 
+like a native 3D representation, no address translation is required for 
+data access, and yet each slice can be easily updated without requiring 
+render-to-slice-of-3D-texture API support. The disadvantage is that the 
+volume can no longer be truly randomly accessed, because each slice is a
+ separate texture. The programmer must know which slice numbers will be 
+accessed before the kernel executes, because fragment and vertex 
+programs cannot dynamically compute which texture to access at runtime.</p>
+
+
+
+
+
+<div class="figure" align="center">
+
+   
+
+      <img src="gpugems2_chapter33_files/33_idioms_06.jpg" alt="33_idioms_06.jpg">
+
+   
+
+   <p>
+
+      Figure 33-6 Storing a 3D Texture with Separate 2D Slices</p>
+
+</div>
+
+
+
+<p>The third option is to pack the 3D array into a single 2D texture, as
+ shown in Figure 33-7. This solution requires an address translation for
+ each data access, but the entire 3D array can be updated in a single 
+render pass and no render-to-slice-of-3D-texture functionality is 
+required. The ability to update the entire volume in a single render 
+pass may have significant performance benefits, because the GPU's 
+parallelism is better utilized when processing large streams. 
+Additionally, unlike the 2D slice layout, the entire 3D array can be 
+randomly accessed from within a kernel.</p>
+
+
+
+<div class="figure" align="center">
+
+   
+
+      <img src="gpugems2_chapter33_files/33_idioms_07.jpg" alt="33_idioms_07.jpg">
+
+   
+
+   <p>
+
+      Figure 33-7 3D Arrays Flattened into a Single 2D Texture</p>
+
+</div>
+
+
+
+<p>A disadvantage of both the second and third schemes is that the GPU's
+ native trilinear filtering cannot be used for high-quality volume 
+rendering of the data. Fortunately, alternate volume rendering 
+algorithms can efficiently render high-quality, filtered images from 
+these complex 3D texture formats (see Chapter 41 of this book, "Deferred
+ Filtering: Rendering from Difficult Data Formats").</p>
+
+
+
+<p>The Cg code in Listing 33-3 shows one form of address translation to 
+convert a 3D address into a 2D address for a packed representation. This
+ packing is identical to the one used for the 1D arrays in Listings 33-1
+ and 33-2. It simply converts the 3D address to a large 1D address space
+ before packing the 1D space into a 2D texture. This packing scheme was 
+presented in Buck et al. 2004. Note that this scheme can use either of 
+the conversions shown in Listing 33-1 and 33-2, depending on the type of
+ the data texture (2D or rectangle).</p>
+
+
+
+
+
+
+
+<h4>Example 33-3. Converting a 3D Address into a 2D Address</h4>
+
+<pre><strong><span style="color: rgb(0, 113, 188);">float2</span></strong> addrTranslation_3Dto2D(<strong><span style="color: rgb(0, 113, 188);">float3</span></strong> address3D,
+
+                              <strong><span style="color: rgb(0, 113, 188);">float3</span></strong> sizeTex3D,
+
+                              <strong><span style="color: rgb(0, 113, 188);">float2</span></strong> sizeTex2D)
+
+{
+
+  <strong><span style="color: rgb(156, 172, 59);">// Parameter explanation:</span></strong>
+
+  <strong><span style="color: rgb(156, 172, 59);">// - "address3D" is 3D array index into a 3D array of "sizeTex3D"</span></strong>
+
+
+
+  <strong><span style="color: rgb(156, 172, 59);">// - "sizeTex2D" is size of 2D texture that stores the 3D array</span></strong>
+
+
+
+  <strong><span style="color: rgb(156, 172, 59);">// Step 1) Texture size constant (This should be precomputed!)</span></strong>
+
+  <strong><span style="color: rgb(0, 113, 188);">float3</span></strong> SIZE_CONST = <strong><span style="color: rgb(0, 113, 188);">float3</span></strong> (1.0, sizeTex3D.x,
+
+                             sizeTex3D.y * sizeTex3D.x);
+
+
+
+  <strong><span style="color: rgb(156, 172, 59);">// Step 2) Convert 3D address to 1D address in [0, sizeTex2D.y]</span></strong>
+
+  <strong><span style="color: rgb(0, 113, 188);">float</span></strong> address1D = <strong><span style="color: rgb(0, 113, 188);">dot</span></strong>( address3D, SIZE_CONST );
+
+
+
+  <strong><span style="color: rgb(156, 172, 59);">// Step 3) Convert [0, texSize.y] 1D address to 2D using the</span></strong>
+
+
+
+  <strong><span style="color: rgb(156, 172, 59);">// 1D-to-2D translation function defined in Listing 33-1.</span></strong>
+
+  <strong><span style="color: rgb(0, 113, 188);">return</span></strong> addrTranslation_1Dto2D( address1D, sizeTex2D );
+
+}</pre>
+
+
+
+
+
+<p>The Cg code for a slice-based, alternate packing scheme is shown in 
+Listing 33-4. This scheme packs slices of the 3D texture into the 2D 
+texture. One difficulty in this scheme is that the width of the 2D 
+texture must be evenly divisible by the width of a slice of the 3D 
+array. The advantage is that native bilinear filtering may be used 
+within each slice. Note that the entire address translation reduces to 
+two instructions (a 1D texture lookup and a multiply-add) if the <tt>sliceAddr</tt> computation is stored in a 1D lookup table texture indexed by <tt>address3D.z</tt> and <tt>nSlicesPerRow</tt> is precomputed.</p>
+
+
+
+
+
+
+
+
+
+<h4>Example 33-4. Source Code for Packing Slices of 3D Texture in a 2D Texture</h4>
+
+<pre><strong><span style="color: rgb(0, 113, 188);">float2</span></strong> addrTranslation_slice_3Dto2D( <strong><span style="color: rgb(0, 113, 188);">float3</span></strong> address3D,
+
+                                     <strong><span style="color: rgb(0, 113, 188);">float3</span></strong> sizeTex3D,
+
+                                     <strong><span style="color: rgb(0, 113, 188);">float2</span></strong> sizeTex2D)
+
+{
+
+  <strong><span style="color: rgb(156, 172, 59);">// NOTE: This should be precomputed</span></strong>
+
+  <strong><span style="color: rgb(0, 113, 188);">float</span></strong> nSlicesPerRow = sizeTex2D.x / sizeTex3D.x;
+
+
+
+  <strong><span style="color: rgb(156, 172, 59);">// Compute (x,y) for slice in address space of the slices</span></strong>
+
+
+
+  <strong><span style="color: rgb(0, 113, 188);">float2</span></strong> sliceAddr = <strong><span style="color: rgb(0, 113, 188);">float2</span></strong>( <strong><span style="color: rgb(0, 113, 188);">fmod</span></strong>(address3D.z, nSlicesPerRow),
+
+                             <strong><span style="color: rgb(0, 113, 188);">floor</span></strong>(address3D.z / nSlicesPerRow) );
+
+
+
+  <strong><span style="color: rgb(156, 172, 59);">// Convert sliceSpace address to 2D texture address</span></strong>
+
+    <strong><span style="color: rgb(0, 113, 188);">float2</span></strong> sliceSize = <strong><span style="color: rgb(0, 113, 188);">float2</span></strong>(address3D.x, address3D.y );
+
+    <strong><span style="color: rgb(0, 113, 188);">float2</span></strong> offset = sliceSize * sliceAddr;
+
+
+
+
+
+    <strong><span style="color: rgb(0, 113, 188);">return</span></strong> addr3D.xy + offset;
+
+}</pre>
+
+
+
+
+
+<p>Note that there would be no reason to store 3D arrays in 2D textures 
+if GPUs supported either 3D rasterization with 3D frame buffers or the 
+ability to "cast" textures from 2D to 3D. In the latter case, the GPU 
+would rasterize the 2D, flattened form of the array but allow the 
+programmer to read from it using 3D addresses.</p>
+
+
+
+
+
+
+
+<h4>Higher-Dimensional Arrays</h4>
+
+
+
+<p>Higher-dimensional arrays can be packed into 2D textures using a 
+generalized form of the packing scheme shown in Listing 33-3 (Buck et 
+al. 2004).</p>
+
+
+
+
+
+
+
+
+
+<h4>33.3.2 Structures</h4>
+
+
+
+<p>A "stream of structures" such as the one shown in Listing 33-5 must 
+be defined instead as a "structure of streams," as shown in Listing 
+33-6. In this construct, a separate stream is created for each structure
+ member. In addition, the structures may not contain more data than can 
+be output per fragment by the GPU.<sup>
+
+      <a href="http://http.developer.nvidia.com/GPUGems2/elementLinks/ch33fn04.html">[4]</a>
+
+   </sup> These restrictions are due to the inability of fragment 
+programs to specify the address to which their frame-buffer result is 
+written (that is, they cannot perform a <em>scatter</em> operation). By 
+specifying structures as a "structure of streams," each structure member
+ has the same stream index, and all members can therefore be updated by a
+ single fragment program.</p>
+
+
+
+
+
+
+
+
+
+<h4>Example 33-5. Stream of Structures</h4>
+
+<pre><strong><span style="color: rgb(156, 172, 59);">// WARNING: "Streams of structures" like the one shown</span></strong>
+
+<strong><span style="color: rgb(156, 172, 59);">// in this example cannot be easily updated on current GPUs.</span></strong>
+
+<strong><span style="color: rgb(0, 113, 188);">struct</span></strong> Foo {
+
+  <strong><span style="color: rgb(0, 113, 188);">float4</span></strong> a;
+
+  <strong><span style="color: rgb(0, 113, 188);">float4</span></strong> b;
+
+};
+
+
+
+<strong><span style="color: rgb(156, 172, 59);">// This "stream of structures" is problematic</span></strong>
+
+Foo foo[N];</pre>
+
+
+
+
+
+
+
+
+
+<h4>Example 33-6. Structure of Streams</h4>
+
+<pre><strong><span style="color: rgb(156, 172, 59);">// This "structure of streams" can be easily updated on</span></strong>
+
+<strong><span style="color: rgb(156, 172, 59);">// current GPUs if the number of data members in each structure</span></strong>
+
+<strong><span style="color: rgb(156, 172, 59);">// is &lt;= the number of fragment outputs supported by the GPU.</span></strong>
+
+<strong><span style="color: rgb(0, 113, 188);">struct</span></strong> Foo {
+
+  <strong><span style="color: rgb(0, 113, 188);">float4</span></strong> a[N];
+
+  <strong><span style="color: rgb(0, 113, 188);">float4</span></strong> b[N];
+
+};
+
+
+
+<strong><span style="color: rgb(156, 172, 59);">// Define a separate stream for each member</span></strong>
+
+
+
+<strong><span style="color: rgb(0, 113, 188);">float4</span></strong> Foo_a[N];
+
+<strong><span style="color: rgb(0, 113, 188);">float4</span></strong> Foo_b[N];</pre>
+
+
+
+
+
+
+
+
+
+<h4>33.3.3 Sparse Data Structures</h4>
+
+
+
+<p>The arrays and structures we've discussed thus far are <em>dense</em>
+ structures. In other words, all elements in the address space of the 
+arrays contain valid data. There are many problems, however, whose 
+efficient solution requires sparse data structures (such as lists, 
+trees, or sparse matrices). Sparse data structures are an important part
+ of many optimized CPU-based algorithms; brute-force GPU-based 
+implementations that use dense data structures in their place are often 
+slower than their optimized CPU counterparts. In addition, sparse data 
+structures can reduce an algorithm's memory requirement—an important 
+consideration given the limited amount of available GPU memory.</p>
+
+
+
+<p>Despite their importance, GPU implementations of sparse data 
+structures are problematic. The first reason is that updating sparse 
+structures usually involves writing to a computed memory address (that 
+is, scattering). The second difficulty is that traversing a sparse 
+structure often involves a nonuniform number of pointer dereferences to 
+access the data. This is problematic because, as discussed in Section 
+33.1, current fragment processors are SIMD machines that must process 
+coarse batches of stream elements with exactly the same instructions. 
+Researchers have nonetheless recently shown that a number of sparse 
+structures can be implemented with current GPUs.</p>
+
+
+
+
+
+<h4>Static Sparse Structures</h4>
+
+
+
+<p>We begin by describing static GPU-based sparse data structures whose 
+structure does not change during GPU computation. Examples of such data 
+structures include the list of triangles in Purcell's ray acceleration 
+grid (Purcell et al. 2002) and the sparse matrices in Bolz et al. 2003 
+and Krüger and Westermann 2003. In these structures, the location and 
+number of sparse elements are fixed throughout the GPU computation. For 
+example, the location and number of triangles in the ray-traced scene do
+ not change. Because the structures are static, they do not have to 
+write to computed memory addresses.</p>
+
+
+
+<p>All of these structures use one or more levels of indirection to 
+represent the sparse structures in memory. Purcell's ray acceleration 
+structure, for example, begins with a regular 3D grid of triangle list 
+pointers, as shown in Figure 33-8. The 3D grid texture contains a 
+pointer to the start of the triangle list (stored in a second texture) 
+for that grid cell. Each entry in the triangle list, in turn, contains a
+ pointer to vertex data stored in a third texture. Similarly, the sparse
+ matrix structures use a fixed number of levels of indirection to find 
+nonzero matrix elements.</p>
+
+
+
+<div class="figure" align="center">
+
+   
+
+      <img src="gpugems2_chapter33_files/33_idioms_08.jpg" alt="33_idioms_08.jpg">
+
+   
+
+   <p>
+
+      Figure 33-8 Purcell's Sparse Ray-Tracing Data Structure</p>
+
+</div>
+
+
+
+<p>These structures solve the problem of irregular access patterns with 
+one of two different methods. The first method is to break the structure
+ into blocks, where all elements in the block have an identical access 
+pattern and can therefore be processed together. The second method is to
+ have each stream element process one item from its list per render 
+pass. Those elements with more items to process will continue to compute
+ results, while those that have reached the end of their list will be 
+disabled.<sup>
+
+      <a href="http://http.developer.nvidia.com/GPUGems2/elementLinks/ch33fn05.html">[5]</a>
+
+   </sup>
+
+</p>
+
+
+
+<p>An example of the blocking strategy is found in Bolz et al. 2003. 
+They split sparse matrices into blocks that have the same number of 
+nonzero elements and pad similar rows so that they have identical 
+layouts. The algorithm for traversing the triangle lists found in 
+Purcell et al. 2002 is an example of nonuniform traversal via 
+conditional execution. All active rays (stream elements) process one 
+element from their respective lists in each render pass. Rays become 
+inactive when they reach the end of their triangle list, while rays that
+ have more triangles to process continue to execute.</p>
+
+
+
+<p>Note that the constraint of uniform access patterns for all stream 
+elements is a restriction of the SIMD execution model of current GPUs. 
+If future GPUs support MIMD stream processing, accessing irregular 
+sparse data structures may become much easier. For example, the limited 
+branching offered in Pixel Shader 3.0 GPUs already offers more options 
+for data structure traversal than previous GPU generations.</p>
+
+
+
+
+
+
+
+<h4>Dynamic Sparse Structures</h4>
+
+
+
+<p>GPU-based sparse data structures that are updated during a GPU 
+computation are an active area of research. Two noteworthy examples are 
+the photon map in Purcell et al. 2003 and the deformable implicit 
+surface representation in Lefohn et al. 2003, 2004. This section gives a
+ brief overview of these data structures and the techniques used to 
+update them.</p>
+
+
+
+<p>A photon map is a sparse, adaptive data structure used to estimate 
+the irradiance (that is, the light reaching a surface) in a scene. 
+Purcell et al. (2003) describe an entirely GPU-based photon map 
+renderer. To create the photon map on the GPU, they devise two schemes 
+for writing data to computed memory addresses (that is, <em>scatter</em>)
+ on current GPUs. The first technique computes the memory addresses and 
+the data to be stored at those addresses. It then performs the scatter 
+by performing a data-parallel sort operation on these buffers. The 
+second technique, <em>stencil routing</em>, uses the vertex processor to
+ draw large points at positions defined by the computed memory 
+addresses. It resolves conflicts (when two data elements are written to 
+the same address) via an ingenious stencil-buffer trick that routes data
+ values to unique bins (pixel locations) even when they are drawn at the
+ same fragment position. The nonuniform data are accessed in a manner 
+similar to the triangle list traversal described in the previous 
+subsection.</p>
+
+
+
+<p>Another GPU-based dynamic sparse data structure is the sparse volume 
+structure used for implicit surface deformation by Lefohn et al. (2003, 
+2004). An <em>implicit surface</em> defines a 3D surface as an <em>isosurface</em>
+ (or level set) of a volume. A common example of 2D isosurfaces is the 
+contour lines drawn on topographic maps. A contour line comprises points
+ on the map that have the same elevation. Similarly, an implicit 3D 
+surface is an isosurface of the scalar values stored in a volume's 
+voxels. Representing surfaces in this way is very convenient from a 
+mathematical standpoint, allowing the surface to freely distort and 
+change topology.</p>
+
+
+
+<p>Efficient representations of implicit surfaces use a sparse data 
+structure that stores only the voxels near the surface rather than the 
+entire volume, as shown in Figure 33-9. Lefohn et al. (2003, 2004) 
+describe a GPU-based technique for deforming implicit surfaces from one 
+shape into another. As the surface evolves, the sparse data structure 
+representing it must also evolve (because the size of the data structure
+ is proportional to the surface area of the implicit surface). For 
+example, if the initial surface is a small sphere and the final form is a
+ large square, the final form will require significantly more memory 
+than was required for the initial sphere. The remainder of this section 
+describes this sparse volume structure and how it evolves with the 
+moving surface.</p>
+
+
+
+<div class="figure" align="center">
+
+   
+
+      <img src="gpugems2_chapter33_files/33_idioms_09.jpg" alt="33_idioms_09.jpg">
+
+   
+
+   <p>
+
+      Figure 33-9 Dynamic Sparse Volume Data on the GPU</p>
+
+</div>
+
+
+
+<p>The sparse structure is created by subdividing the 3D volume into 
+small 2D tiles (see the section marked "A" in Figure 33-9). The CPU 
+stores tiles that contain the surface (that is, <em>active</em> tiles) 
+in GPU texture memory (see the section marked "B" in Figure 33-9). The 
+GPU performs the surface deformation computation on only the active 
+tiles (see step 2 in Figure 33-9). The CPU keeps a map of the active 
+tiles and allocates/frees tiles as necessary for the GPU computation. 
+This scheme solves the dynamic update problem by employing the CPU as a 
+memory management coprocessor for the GPU.</p>
+
+
+
+<p>A key component of the system is the way in which the GPU requests 
+that the CPU allocate or free tiles. The CPU receives the communication 
+by reading a small encoded message (image) from the GPU (see steps 3 and
+ 4 in Figure 33-9). This image contains one pixel per active tile, and 
+the value of each pixel is a bit code. The 7-bit code has 1 bit for the 
+active tile and 6 bits for each of the tiles neighboring it in the 3D 
+volume. The value of each bit instructs the CPU to allocate or free the 
+associated tile. The CPU, in fact, interprets the entire image as a 
+single bit vector. The GPU creates the bit vector image by computing a 
+memory request at each active pixel, then reducing the requests to one 
+per tile by using either automatic mipmap generation or the reduction 
+techniques described in Buck et al. 2004. Once the CPU decodes the 
+memory request message, it allocates/frees the requested tiles and sends
+ a new set of vertices and texture coordinates to the GPU (see step 1 in
+ Figure 33-9). These vertex data represent the new active set of tiles 
+on which the GPU computes the surface deformation.</p>
+
+
+
+<p>In summary, this dynamic sparse data structure solves the problem of 
+requiring scatter functionality by sending small messages to the CPU 
+when the GPU data structure needs to be updated. The structure uses the 
+blocking strategy, discussed at the beginning of this section, to unify 
+computation on a sparse domain. The scheme is effective for several 
+reasons. First, the amount of GPU-CPU communication is minimized by 
+using the compressed bit vector message format. Second, the CPU serves 
+only as a memory manager and lets the GPU perform all of the "heavy" 
+computation. Note that the implicit surface data resides only on the GPU
+ throughout the deformation. Lastly, the dynamic sparse representation 
+enables the computation and memory requirements to scale with the 
+surface area of the implicit surface rather than the volume of its 
+bounding box. This is an important optimization, which if ignored would 
+allow CPU-based implementations to easily outpace the GPU version.</p>
+
+
+
+<p>The two dynamic sparse data structures described in this section both
+ adhere to the rules of data-parallel data structures in that their data
+ elements can be accessed independently in parallel. Purcell et al.'s 
+structure is updated in a data-parallel fashion, whereas Lefohn et al.'s
+ structure is updated partially in parallel (the GPU generates a memory 
+allocation request using data-parallel computation) and partially with a
+ serial program (the CPU services the array of memory requests one at a 
+time using stacks and queues). Complex GPU-compatible data structures 
+will remain an active area of research due to their importance in 
+creating scalable, optimized algorithms. Whether or not these data 
+structures are contained entirely within the GPU or use a hybrid CPU/GPU
+ model will depend largely on how the GPU evolves and at what 
+speed/latency the CPU and GPU can communicate.</p>
+
+
+
+<h2>33.4 Performance Considerations</h2>
+
+
+
+<p>This last section describes low-level details that can have a large 
+impact on the overall performance of GPU-based data structures.</p>
+
+
+
+
+
+<h4>33.4.1 Dependent Texture Reads</h4>
+
+
+
+<p>One of the GPU's advantages over a CPU is its ability to hide the 
+cost of reading out-of-cache values from memory. It accomplishes this by
+ issuing asynchronous memory read requests and performing other, 
+nondependent operations to fill the time taken by the memory request. 
+Performing multiple dependent memory accesses (that is, using the result
+ of a memory access as the address for the next) reduces the amount of 
+available nondependent work and thus gives the GPU less opportunity to 
+hide memory access latency. As such, certain types of dependent texture 
+reads can cause severe slowdowns in your program if not used with 
+discretion.</p>
+
+
+
+<p>Not all dependent texture reads will slow down your program. The 
+publicly available benchmarking tool GPUBench (Fatahalian et al. 2004) 
+reports that the cost of dependent texture reads is entirely based on 
+the cache coherency of the memory accesses. The danger, then, with 
+dependent texture reads is their ability to easily create 
+cache-incoherent memory accesses. Strive to make dependent texture reads
+ in your data structures as cache-coherent as possible. Techniques for 
+maintaining cache coherency include grouping similar computations into 
+coherent blocks, using the smallest possible lookup tables, and 
+minimizing the number of levels of texture dependencies (thereby 
+reducing the risk of incoherent accesses).</p>
+
+
+
+
+
+
+
+<h4>33.4.2 Computational Frequency and Program Specialization</h4>
+
+
+
+<p>The data streams described in Section 33.2.2 are computed at 
+different computational frequencies. Vertex streams, for example, are a 
+lower-frequency stream than fragment streams. This means that vertex 
+streams contain fewer elements than fragment streams. The available 
+computational frequencies for GPU computation are these: constant, 
+uniform, vertex, and fragment. Constant values are known at compile 
+time, and uniform arguments are runtime values computed only once per 
+kernel execution. We can take advantage of the different computational 
+frequencies in GPUs by computing values at the lowest possible 
+frequency. For example, if a fragment program accesses multiple 
+neighboring texels, it is generally more efficient to compute the memory
+ addresses for those texels in a vertex program rather than a fragment 
+program if there are fewer vertices than fragments.</p>
+
+
+
+<p>Another example of computational frequency optimizations is kernel 
+code that computes the same value at each data element. This computation
+ should be precomputed on the CPU at uniform frequency before the GPU 
+kernel executes. Such code is common in the address translation code 
+shown earlier (Listings 33-1, 33-2, and 33-3). One way to avoid such 
+redundant computation is to precompute the uniform results by hand and 
+change the kernel code accordingly (including the kernel's parameters). 
+Another, more elegant, option is to use the Cg compiler's <em>program specialization</em>
+ functionality to perform the computation automatically. Program 
+specialization (Jones et al. 1993) recompiles a program at runtime after
+ "runtime constant" uniform parameters have been set. All code paths 
+that depend only on these known values are executed, and the 
+constant-folded values are stored in the compiled code. Program 
+specialization is available in Cg via the <tt>cgSetParameterVariability</tt>
+ API call (NVIDIA 2004). Note that this technique requires recompiling 
+the kernel and is thus applicable only when the specialized kernel is 
+used many times between changes to the uniform parameters. The technique
+ often applies to only a subset of uniform parameters that are set only 
+once (that is, "runtime constants").</p>
+
+
+
+
+
+
+
+<h4>33.4.3 Pbuffer Survival Guide</h4>
+
+
+
+<p>Pbuffers, or pixel buffers, are off-screen frame buffers in OpenGL. 
+In addition to providing floating-point frame buffers, these special 
+frame buffers offer the only render-to-texture functionality available 
+to OpenGL programmers until very recently. Unfortunately, pbuffers were 
+not designed for the heavy render-to-texture usage that many GPGPU 
+applications demand (sometimes having hundreds of pbuffers), and many 
+performance pitfalls exist when trying to use pbuffers in this way.</p>
+
+
+
+<p>The OpenGL Architecture Review Board (ARB) is currently working on a 
+new mechanism for rendering to targets other than a displayable frame 
+buffer (that is, textures, vertex arrays, and so on). This extension, in
+ combination with the vertex and pixel buffer object extensions, will 
+obviate the use of pbuffers for render-to-texture. We have nonetheless 
+included the following set of pbuffer tips because a large number of 
+current applications use them extensively.</p>
+
+
+
+<p>The fundamental problem with pbuffers is that each pbuffer contains 
+its own OpenGL render and device context. Changing between these 
+contexts is a very expensive operation. The traditional use of pbuffers 
+for render-to-texture has been to use one pbuffer with each renderable 
+texture. The result is that switching from one renderable texture to the
+ next requires a GPU context switch—leading to abysmal application 
+performance. This section presents two techniques that greatly reduce 
+the cost of changing render targets by avoiding switching contexts.</p>
+
+
+
+<p>The first of these optimizations is to use <em>multisurface</em> pbuffers. A pbuffer <em>surface</em>
+ is one of the pbuffer's color buffers (such as front, back, aux0, and 
+so on). Each pbuffer surface can serve as its own renderable texture, 
+and switching between surfaces is very fast. It is important to ensure 
+that you do not bind the same surface as both a texture and a render 
+target. This is an illegal configuration and will most likely lead to 
+incorrect results because it breaks the stream programming model 
+guarantee that kernels cannot write to their input streams. Listing 33-7
+ shows pseudocode for creating and using a multisurface pbuffer for 
+multiple render-to-texture passes.</p>
+
+
+
+
+
+
+
+<h4>Example 33-7. Efficient Render-to-Texture Using Multisurface Pbuffers in OpenGL</h4>
+
+<pre><strong><span style="color: rgb(0, 113, 188);">void</span></strong> draw( <strong><span style="color: rgb(0, 113, 188);">GLenum</span></strong> readSurface, <strong><span style="color: rgb(0, 113, 188);">GLenum</span></strong> writeSurface )
+
+{
+
+  <strong><span style="color: rgb(156, 172, 59);">// 1) Bind readSurface as texture</span></strong>
+
+  <strong><span style="color: rgb(0, 113, 188);">wglBindTexImageARB</span></strong>(pbuffer, readSurface);
+
+
+
+  <strong><span style="color: rgb(156, 172, 59);">// 2) Set render target to the writeSurface</span></strong>
+
+  <strong><span style="color: rgb(0, 113, 188);">glDrawBuffer</span></strong>(writeSurface);
+
+
+
+  <strong><span style="color: rgb(156, 172, 59);">// 3) Render</span></strong>
+
+
+
+  doRenderPass(. . .);
+
+  <strong><span style="color: rgb(156, 172, 59);">// 4) Unbind readSurface texture</span></strong>
+
+  <strong><span style="color: rgb(0, 113, 188);">wglReleaseTexImageARB</span></strong>(pbuffer, readSurface);
+
+}
+
+
+
+<strong><span style="color: rgb(156, 172, 59);">// 1) Allocate and enable multisurface pbuffer (Front, Back, AUX buffers)</span></strong>
+
+Pbuffer pbuff = allocateMultiPbuffer( <strong><span style="color: rgb(0, 113, 188);">GL_FRONT</span></strong>, <strong><span style="color: rgb(0, 113, 188);">GL_BACK</span></strong>, <strong><span style="color: rgb(0, 113, 188);">GL_AUX0</span></strong>, . . .);
+
+EnableRenderContext( pbuff );
+
+
+
+<strong><span style="color: rgb(156, 172, 59);">// 2) Read from FRONT and write to BACK</span></strong>
+
+
+
+draw( <strong><span style="color: rgb(0, 113, 188);">WGL_FRONT_ARB</span></strong>, <strong><span style="color: rgb(0, 113, 188);">GL_BACK</span></strong> );
+
+
+
+<strong><span style="color: rgb(156, 172, 59);">// 3) Read from BACK and write to FRONT</span></strong>
+
+draw( <strong><span style="color: rgb(0, 113, 188);">WGL_BACK_ARB</span></strong>, <strong><span style="color: rgb(0, 113, 188);">GL_FRONT</span></strong> );</pre>
+
+
+
+
+
+<p>The second pbuffer optimization is to use the packing techniques 
+described in Section 33.3.1 for flattening a 3D texture into a 2D 
+texture. Storing your data in multiple "viewports" of the same, large 
+pbuffer will further avoid the need to switch OpenGL contexts. Goodnight
+ et al. (2003) use this technique extensively in their multigrid solver.
+ Just as in the basic multisurface pbuffer case, however, you must avoid
+ simultaneously reading from and writing to the same surface.</p>
+
+
+
+<h2>33.5 Conclusion</h2>
+
+
+
+<p>The GPU memory model is based on a streaming, data-parallel 
+computation model that supports a high degree of parallelism and memory 
+locality. The model has a number of restrictions on when, how, and where
+ memory can be used. Many of these restrictions exist to guarantee 
+parallelism, but some exist because GPUs are designed and optimized for 
+real-time rendering rather than general high-performance computing. As 
+the application domains that drive GPU sales include more than real-time
+ graphics, it is likely that GPUs will become more general and these 
+artificial restrictions will be relaxed.</p>
+
+
+
+<p>Techniques for managing basic GPU-based data structures such as 
+multidimensional arrays and structures are well established. The 
+creation, efficient use, and updating of complex GPU data structures 
+such as lists, trees, and sparse arrays is an active area of research.</p>
+
+
+
+
+
+<h2>33.6 References</h2>
+
+
+
+
+
+
+
+<p>
+
+   <a name="biblio33_01">Bolz, J., I. Farmer, E. Grinspun, and P. Schröder. 2003. "Spare Matrix Solvers on the GPU: Conjugate Gradients and Multigrid." <em>ACM Transactions on Graphics (Proceedings of SIGGRAPH 2003)</em> 22(3), pp. 917–924.</a></p><a name="biblio33_01">
+
+
+
+</a><p><a name="biblio33_01">
+
+   </a><a name="biblio33_02">Buck, I., T. Foley, D. Horn, J. Sugerman, and P. Hanrahan. 2004. "Brook for GPUs: Stream Computing on Graphics Hardware." <em>ACM Transactions on Graphics (Proceedings of SIGGRAPH 2004)</em> 23(3), pp. 777–786.</a></p><a name="biblio33_02">
+
+
+
+</a><p><a name="biblio33_02">
+
+   </a><a name="biblio33_03">Dally, W. J., U. J. Kapasi, B. Khailany, J. Ahn, and A. Das. 2004. "Stream Processors: Programmability with Efficiency." <em>ACM Queue</em> 2(1), pp. 52–62.</a></p><a name="biblio33_03">
+
+
+
+</a><p><a name="biblio33_03">
+
+   </a><a name="biblio33_04">Fatahalian, K., I. Buck, and P. Hanrahan. 
+2004. "GPUBench: Evaluating GPU Performance for Numerical and Scientific
+ Applications." GP<sup>2</sup> Workshop. Available online at <strong>
+
+      </strong></a><strong><a href="http://graphics.stanford.edu/projects/gpubench/">http://graphics.stanford.edu/projects/gpubench/</a>
+
+   </strong>
+
+</p>
+
+
+
+<p>
+
+   <a name="biblio33_05">Goodnight, N., C. Woolley, G. Lewin, D. Luebke,
+ and G. Humphreys. 2003. "A Multigrid Solver for Boundary Value Problems
+ Using Programmable Graphics Hardware." In <em>Proceedings of the SIGGRAPH/Eurographics Workshop on Graphics Hardware 2003</em>, pp. 102–111.</a></p><a name="biblio33_05">
+
+
+
+</a><p><a name="biblio33_05">
+
+   </a><a name="biblio33_06">Harris, M., D. Luebke, I. Buck, N. 
+Govindaraju, J. Krüger, A. Lefohn, T. Purcell, and J. Wooley. 2004. 
+"GPGPU: General-Purpose Computation on Graphics Processing Units." 
+SIGGRAPH 2004 Course Notes. Available online at <strong>
+
+      </strong></a><strong><a href="http://www.gpgpu.org/">http://www.gpgpu.org</a>
+
+   </strong>
+
+</p>
+
+
+
+<p>
+
+   <a name="biblio33_07">Harris, M. J., W. V. Baxter, T. Scheuermann, and A. Lastra. 2003. "Simulation of Cloud Dynamics on Graphics Hardware." In <em>Proceedings of the SIGGRAPH/Eurographics Workshop on Graphics Hardware 2003</em>, pp. 92–101.</a></p><a name="biblio33_07">
+
+
+
+</a><p><a name="biblio33_07">
+
+   </a><a name="biblio33_08">Jones, N. D., C. K. Gomard, and P. Sestoft. 1993. <em>Partial Evaluation and Automatic Program Generation</em>. Prentice Hall.</a></p><a name="biblio33_08">
+
+
+
+</a><p><a name="biblio33_08">
+
+   </a><a name="biblio33_09">Krüger, J., and R. Westermann. 2003. "Linear Algebra Operators for GPU Implementation of Numerical Algorithms." <em>ACM Transactions on Graphics (Proceedings of SIGGRAPH 2003)</em> 22(3), pp. 908–916.</a></p><a name="biblio33_09">
+
+
+
+</a><p><a name="biblio33_09">
+
+   </a><a name="biblio33_10">Lefohn, A. E., J. M. Kniss, C. D. Hansen, 
+and R. T. Whitaker. 2003. "Interactive Deformation and Visualization of 
+Level Set Surfaces Using Graphics Hardware." <em>IEEE Visualization</em>, pp. 75–82.</a></p><a name="biblio33_10">
+
+
+
+</a><p><a name="biblio33_10">
+
+   </a><a name="biblio33_11">Lefohn, A. E., J. M. Kniss, C. D. Hansen, 
+and R. T. Whitaker. 2004. "A Streaming Narrow-Band Algorithm: 
+Interactive Deformation and Visualization of Level Sets." <em>IEEE Transactions on Visualization and Computer Graphics</em> 10(2), pp. 422–433.</a></p><a name="biblio33_11">
+
+
+
+</a><p><a name="biblio33_11">
+
+   </a><a name="biblio33_12">Microsoft Corporation. 2004a. "Pixel Shader 3.0 Spec." Available online at <strong>
+
+      </strong></a><strong><a href="http://msdn.microsoft.com/library/default.asp?url=/library/en-us/directx9_c/directx/graphics/reference/assemblylanguageshaders/pixelshaders/ps_3_0.asp">http://msdn.microsoft.com/library/default.asp?url=/library/en-us/directx9_c/directx/graphics/reference/assemblylanguageshaders/pixelshaders/ps_3_0.asp</a>
+
+   </strong>
+
+</p>
+
+
+
+<p>
+
+   <a name="biblio33_13">Microsoft Corporation. 2004b. "Vertex Shader 3.0 Spec." Available online at <strong>
+
+      </strong></a><strong><a href="http://msdn.microsoft.com/library/default.asp?url=/library/en-us/directx9_c/directx/graphics/reference/assemblylanguageshaders/vertexshaders/vs_3_0.asp">http://msdn.microsoft.com/library/default.asp?url=/library/en-us/directx9_c/directx/graphics/reference/assemblylanguageshaders/vertexshaders/vs_3_0.asp</a>
+
+   </strong>
+
+</p>
+
+
+
+<p>
+
+   <a name="biblio33_14">NVIDIA Corporation. 2004. "Cg Language Reference." Available online at <strong>
+
+      </strong></a><strong><a href="http://developer.nvidia.com/">http://developer.nvidia.com/</a>
+
+   </strong>
+
+</p>
+
+
+
+<p>
+
+   <a name="biblio33_15">OpenGL Extension Registry. 2004. Available online at <strong>
+
+      </strong></a><strong><a href="http://oss.sgi.com/projects/ogl-sample/registry/">http://oss.sgi.com/projects/ogl-sample/registry/</a>
+
+   </strong>
+
+</p>
+
+
+
+<p>
+
+   <a name="biblio33_16">Purcell, T. J., I. Buck, W. R. Mark, and P. Hanrahan. 2002. "Ray Tracing on Programmable Graphics Hardware." <em>ACM Transactions on Graphics (Proceedings of SIGGRAPH 2002)</em> 21(3), pp. 703–712.</a></p><a name="biblio33_16">
+
+
+
+</a><p><a name="biblio33_16">
+
+   </a><a name="biblio33_17">Purcell, T. J., C. Donner, M. Cammarano, H.
+ W. Jensen, and P. Hanrahan. 2003. "Photon Mapping on Programmable 
+Graphics Hardware." In <em>Proceedings of the SIGGRAPH/Eurographics Workshop on Graphics Hardware 2003</em>, pp. 41–50.</a></p><a name="biblio33_17">
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+
+</script><script src="gpugems2_chapter33_files/ga.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+var pageTracker = _gat._getTracker("UA-4670658-1");
+
+pageTracker._initData();
+
+pageTracker._trackPageview();
+
+</script>
+
+
+
+
+
+
+		
+
+		
+
+<hr>
+
+<h4>Copyright</h4>
+
+
+
+<p>Many of the designations used by manufacturers and sellers to 
+distinguish their products are claimed as trademarks. Where those 
+designations appear in this book, and Addison-Wesley was aware of a 
+trademark claim, the designations have been printed with initial capital
+ letters or in all capitals.</p>
+
+<p>The authors and publisher have taken care in the preparation of this 
+book, but make no expressed or implied warranty of any kind and assume 
+no responsibility for errors or omissions. No liability is assumed for 
+incidental or consequential damages in connection with or arising out of
+ the use of the information or programs contained herein.</p>
+
+<p>NVIDIA makes no warranty or representation that the techniques 
+described herein are free from any Intellectual Property claims. The 
+reader assumes all risk of any such claims based on his or her use of 
+these techniques.</p>
+
+<p>The publisher offers excellent discounts on this book when ordered in
+ quantity for bulk purchases or special sales, which may include 
+electronic versions and/or custom covers and content particular to your 
+business, training goals, marketing focus, and branding interests. For 
+more information, please contact:</p>
+
+</a><p><a name="biblio33_17">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;U.S.&nbsp;Corporate&nbsp;and&nbsp;Government&nbsp;Sales<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(800)&nbsp;382-3419<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a><a href="mailto:corpsales@pearsontechgroup.com">corpsales@pearsontechgroup.com</a></p>
+
+<p>For sales outside of the U.S., please contact:</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;International&nbsp;Sales<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="mailto:international@pearsoned.com">international@pearsoned.com</a></p>
+
+<p>Visit Addison-Wesley on the Web: <a href="http://www.awprofessional.com/">www.awprofessional.com</a></p>
+
+<p><em>Library of Congress Cataloging-in-Publication Data</em></p>
+
+<p>GPU&nbsp;gems&nbsp;2&nbsp;:&nbsp;programming&nbsp;techniques&nbsp;for&nbsp;high-performance&nbsp;graphics&nbsp;and&nbsp;general-purpose<br>computation&nbsp;/&nbsp;edited&nbsp;by&nbsp;Matt&nbsp;Pharr&nbsp;;&nbsp;Randima&nbsp;Fernando,&nbsp;series&nbsp;editor.<br>&nbsp;&nbsp;&nbsp;&nbsp;p.&nbsp;cm.<br>&nbsp;&nbsp;Includes&nbsp;bibliographical&nbsp;references&nbsp;and&nbsp;index.<br>&nbsp;&nbsp;ISBN&nbsp;0-321-33559-7&nbsp;(hardcover&nbsp;:&nbsp;alk.&nbsp;paper)<br>&nbsp;&nbsp;1.&nbsp;Computer&nbsp;graphics.&nbsp;2.&nbsp;Real-time&nbsp;programming.&nbsp;I.&nbsp;Pharr,&nbsp;Matt.&nbsp;II.&nbsp;Fernando,&nbsp;Randima.<br><br>&nbsp;&nbsp;T385.G688&nbsp;2005<br>&nbsp;&nbsp;006.66—dc22<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2004030181</p>
+
+<p>GeForce™ and NVIDIA Quadro® are trademarks or registered trademarks of NVIDIA Corporation.</p>
+
+<p>Nalu, Timbury, and Clear Sailing images © 2004 NVIDIA Corporation.</p>
+
+<p>mental images and mental ray are trademarks or registered trademarks of mental images, GmbH.</p>
+
+<p>Copyright © 2005 by NVIDIA Corporation.</p>
+
+<p>All rights reserved. No part of this publication may be reproduced, 
+stored in a retrieval system, or transmitted, in any form, or by any 
+means, electronic, mechanical, photocopying, recording, or otherwise, 
+without the prior consent of the publisher. Printed in the United States
+ of America. Published simultaneously in Canada.</p>
+
+<p>For information on obtaining permission for use of material from this work, please submit a written request to:</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Pearson&nbsp;Education,&nbsp;Inc.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rights&nbsp;and&nbsp;Contracts&nbsp;Department<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;One&nbsp;Lake&nbsp;Street<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Upper&nbsp;Saddle&nbsp;River,&nbsp;NJ&nbsp;07458</p>
+
+<p>Text printed in the United States on recycled paper at Quebecor World Taunton in Taunton, Massachusetts.</p>
+
+<p>Second printing, April 2005</p>
+
+<h2>Dedication</h2>
+
+<blockquote>
+
+   <p><em>To everyone striving to make today's best computer graphics look primitive tomorrow</em></p>
+
+</blockquote>
+
+
+
+<!-- <div align="right" style=" color:#999999;">Last Update: 09:24 09/22/2008</div> -->
+
+  </div>
+
+  
+
+  <div id="left" class="column">		
+
+    <a href="http://developer.nvidia.com/">Developer Site Homepage</a><br><br>
+
+		<a href="http://news.developer.nvidia.com/">Developer News Homepage</a><br><br>
+
+
+
+		<img src="gpugems2_chapter33_files/divider.htm" alt="" align="" border="0"><br><br>
+
+
+
+		<a href="https://nvdeveloper.nvidia.com/">Developer Login</a><br><br>
+
+		<a href="http://developer.nvidia.com/page/registered_developer_program.html">Become a<br>Registered Developer</a><br><br>
+
+
+
+		<img src="gpugems2_chapter33_files/divider.htm" alt="" align="" border="0"><br><br>
+
+
+
+		<a href="http://developer.nvidia.com/page/tools.html">Developer Tools</a><br><br>
+
+		<a href="http://developer.nvidia.com/page/documentation.html">Documentation</a><br><br>
+
+		<a href="http://developer.nvidia.com/page/directx.html">DirectX</a><br><br>
+
+		<a href="http://developer.nvidia.com/page/opengl.html">OpenGL</a><br><br>
+
+		<a href="http://developer.nvidia.com/object/cuda.html">GPU Computing</a><br><br>
+
+		<a href="http://developer.nvidia.com/page/handheld.html">Handheld</a><br><br>
+
+		<a href="http://developer.nvidia.com/page/event_calendar.html">Events Calendar</a><br><br>
+
+
+
+		<img src="gpugems2_chapter33_files/divider.htm" alt="" align="" border="0"><br><br>
+
+
+
+		<a href="http://developer.nvidia.com/object/newsletter_signup.html">Newsletter Sign-Up</a><br><br>
+
+		<a href="http://developer.nvidia.com/object/downloading_drivers.html">Drivers</a><br><br>
+
+		<a href="http://developer.nvidia.com/page/jobs.html">Jobs (1)</a><br><br>
+
+		<a href="http://developer.nvidia.com/object/contact_us.html">Contact</a><br><br>
+
+		<a href="http://developer.nvidia.com/object/legal_info.html">Legal Information</a><br><br>
+
+
+
+		<img src="gpugems2_chapter33_files/divider.htm" alt="" align="" border="0"><br><br>
+
+		<a href="http://surveys.nvidia.com/index.jsp?pi=c1655cd3f4d0fb4bfdee853f141f9a75">Site Feedback</a>		
+
+	</div>
+
+	
+
+  <div id="right" class="column"><ul><li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_frontmatter.html">Preface, Foreword, and Contributors</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_inside_back_cover.html">Inside Back Cover</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_inside_front_cover.html">Inside Front Cover</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_part01.html"><i>Part I: Geometric Complexity</i></a></li>
+<ul>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter01.html">Chapter 1. Toward Photorealism in Virtual Botany</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter02.html">Chapter 2. Terrain Rendering Using GPU-Based Geometry Clipmaps</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter03.html">Chapter 3. Inside Geometry Instancing</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter04.html">Chapter 4. Segment Buffering</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter05.html">Chapter 5. Optimizing Resource Management with Multistreaming</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter06.html">Chapter 6. Hardware Occlusion Queries Made Useful</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter07.html">Chapter 7. Adaptive Tessellation of Subdivision Surfaces with Displacement Mapping</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter08.html">Chapter 8. Per-Pixel Displacement Mapping with Distance Functions</a></li>
+</ul><li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_part02.html"><i>Part II: Shading, Lighting, and Shadows</i></a></li>
+<ul>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter09.html">Chapter 9. Deferred Shading in S.T.A.L.K.E.R.</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter10.html">Chapter 10. Real-Time Computation of Dynamic Irradiance Environment Maps</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter11.html">Chapter 11. Approximate Bidirectional Texture Functions</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter12.html">Chapter 12. Tile-Based Texture Mapping</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter13.html">Chapter 13. Implementing the mental images Phenomena Renderer on the GPU</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter14.html">Chapter 14. Dynamic Ambient Occlusion and Indirect Lighting</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter15.html">Chapter 15. Blueprint Rendering and "Sketchy Drawings"</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter16.html">Chapter 16. Accurate Atmospheric Scattering</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter17.html">Chapter 17. Efficient Soft-Edged Shadows Using Pixel Shader Branching</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter18.html">Chapter 18. Using Vertex Texture Displacement for Realistic Water Rendering</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter19.html">Chapter 19. Generic Refraction Simulation</a></li>
+</ul><li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_part03.html"><i>Part III: High-Quality Rendering</i></a></li>
+<ul>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter20.html">Chapter 20. Fast Third-Order Texture Filtering</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter21.html">Chapter 21. High-Quality Antialiased Rasterization</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter22.html">Chapter 22. Fast Prefiltered Lines</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter23.html">Chapter 23. Hair Animation and Rendering in the Nalu Demo</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter24.html">Chapter 24. Using Lookup Tables to Accelerate Color Transformations</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter25.html">Chapter 25. GPU Image Processing in Apple's Motion</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter26.html">Chapter 26. Implementing Improved Perlin Noise</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter27.html">Chapter 27. Advanced High-Quality Filtering</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter28.html">Chapter 28. Mipmap-Level Measurement</a></li>
+</ul><li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_part04.html"><i>Part IV: General-Purpose Computation on GPUS: A Primer</i></a></li>
+<ul>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter29.html">Chapter 29. Streaming Architectures and Technology Trends</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter30.html">Chapter 30. The GeForce 6 Series GPU Architecture</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter31.html">Chapter 31. Mapping Computational Concepts to GPUs</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter32.html">Chapter 32. Taking the Plunge into GPU Computing</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter33.html"><font color="#45b900;"><b><i>Chapter 33. Implementing Efficient Parallel Data Structures on GPUs</i></b></font></a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter34.html">Chapter 34. GPU Flow-Control Idioms</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter35.html">Chapter 35. GPU Program Optimization</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter36.html">Chapter 36. Stream Reduction Operations for GPGPU Applications</a></li>
+</ul><li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_part05.html"><i>Part V: Image-Oriented Computing</i></a></li>
+<ul>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter37.html">Chapter 37. Octree Textures on the GPU</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter38.html">Chapter 38. High-Quality Global Illumination Rendering Using Rasterization</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter39.html">Chapter 39. Global Illumination Using Progressive Refinement Radiosity</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter40.html">Chapter 40. Computer Vision on the GPU</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter41.html">Chapter 41. Deferred Filtering: Rendering from Difficult Data Formats</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter42.html">Chapter 42. Conservative Rasterization</a></li>
+</ul><li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_part06.html"><i>Part VI: Simulation and Numerical Algorithms</i></a></li>
+<ul>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter43.html">Chapter 43. GPU Computing for Protein Structure Prediction</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter44.html">Chapter 44. A GPU Framework for Solving Systems of Linear Equations</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter45.html">Chapter 45. Options Pricing on the GPU</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter46.html">Chapter 46. Improved GPU Sorting</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter47.html">Chapter 47. Flow Simulation with Complex Boundaries</a></li>
+<li><a href="http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter48.html">Chapter 48. Medical Image Reconstruction with the FFT</a></li>
+</ul>
+</ul></div>
+
+</div>
+
+
+
+<div id="footer"></div>
+
+
+
+
+
+<!--WEBSIDESTORY CODE HBX1.0 (Universal)-->
+
+<!--COPYRIGHT 1997-2005 WEBSIDESTORY,INC. ALL RIGHTS RESERVED. U.S.PATENT No. 6,393,479B1. MORE INFO:http://websidestory.com/privacy-->
+
+<script language="javascript">
+
+var _hbEC=0,_hbE=new Array;function _hbEvent(a,b){b=_hbE[_hbEC++]=new Object();b._N=a;b._C=0;return b;}
+
+var hbx=_hbEvent("pv");hbx.vpc="HBX0100u";hbx.gn="a.nvidia.com";
+
+hbx.acct="DM55061879AA96EN3";//developer
+
+hbx.pn="PUT+PAGE+NAME+HERE";
+
+hbx.mlc="CONTENT+CATEGORY";
+
+hbx.pndef="home.html";
+
+hbx.ctdef="full";
+
+hbx.lt="auto";
+
+hbx.dlf=".run,.8bi,.asx,.bat,.cg,.chm,.cpp,.db,.dds,.dll,.dsp,.dsw,.fp,.fx,.fxcomposer,.fxproj,.h,.hdr,.hpp,.ico,.img,.inf,.ini,.key,.lib,.lst,.msi,.ncb,.opt,.P3D,.plg,.exr,.rc,.res,.sh,.sln,.spc,.str,.tga,.txt,.vcproj,.xml";
+
+</script><script language="javascript1.1" defer="defer" src="gpugems2_chapter33_files/hbx.htm"></script>
+
+<!--END WEBSIDESTORY CODE-->
+
+
+
+
+
+
+</body></html>
+<!-- generated html end -->
+<!-- Copyright info for The Cg Tutorial -->
