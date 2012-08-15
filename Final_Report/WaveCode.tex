@@ -1,7 +1,8 @@
 \section{Wave Code}
 \label{WaveCode}
-\subsection{GPU Architecture}
-Don't forget to mention that our code uses OpenCL but CUDA is another language that only works on NVIDIA.
+\subsection{GPGPU Basics}
+A GPU can be visualized as thousands of weak processors operating on data that all of the processors can access (global memory). However, there is an important division of these processors that limits what can be processed on a GPU. A warp (Nvidia) or wavefront (AMD) refers to groups of 32 or 64 processors, respectively, that must all run the exact same code but can begin with different data.  GPUs are therefore ideal for doing SIMD (Single Instruction Multiple Data) operations. Processors in the same warp/wavefront can also use special shared memory that is much faster than global memory. In OpenCL you must define the number of instances of a kernel (called the work group size) you want to run on the GPU. Choosing a multiple of the warp/wavefront size is the most efficient choice as this means none of the processors will be producing output that won't be used.
+An important point for GPU programming is that the CPU must move all memory to the GPU card before the GPU can process it. A typical bottleneck for GPU applications is the latency of transferring data between the GPU memory and the CPU memory. Thus it behooves a programmer to make as few data transfers to and from the GPU as possible.
 \subsection{Model Equations and Method}
 The GPU enabled code we have been working with models the shallow water equations using a Lax-Wendroff method with a Minmod TVD Limiter, as described in Section \ref{Lax}. This simplification of the Euler Equations assumes that the length of waves is far greater than the depth of the fluid. This allows for an incompressible model:
 \[
